@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão - Controle de Estoque</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/styles.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .hover\:bg-gray-50:hover {
+            background-color: #f9fafb;
+        }
+        .sidebar-active-link {
+            background-color: #4a5568;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .sidebar-hover-effect:hover {
+             background-color: #2d3748;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <div class="w-64 bg-gray-800 text-gray-200 flex flex-col h-full fixed">
+            <div class="p-4 border-b border-gray-700">
+                <img src="/imgs/LOGO2.webp" alt="Logo EPL" class="h-10 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/150x40/cccccc/000000?text=Logo+EPL';">
+            </div>
+            <nav class="flex-grow pt-4">
+                <ul>
+                    <li><a href="dashboard.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-chart-line w-6"></i><span class="ml-3">Dashboard</span></a></li>
+                    <li><a href="clientes.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-users w-6"></i><span class="ml-3">Clientes</span></a></li>
+                    <li><a href="estoque.html" class="sidebar-active-link flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-boxes-stacked w-6"></i><span class="ml-3">Estoque</span></a></li>
+                                        <li>
+                        <a href="/admin/produtos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
+                            <i class="fas fa-fw fa-tag w-6"></i>
+                            <span class="ml-3">Produtos</span>
+                        </a>
+                    </li>
+                    <li><a href="pedidos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-shopping-cart w-6"></i><span class="ml-3">Pedidos</span></a></li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-6"></i><span class="ml-3">Sair</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex-1 ml-64 overflow-y-auto h-screen">
+            <header class="bg-white p-6 shadow-sm">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Controle de Estoque</h1>
+        <div class="flex items-center">
+            <span id="welcomeMessage" class="text-gray-600"></span>
+        </div>
+    </div>
+</header>
+            
+            <main class="p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-3 md:space-y-0">
+                    <div class="flex space-x-2 flex-wrap">
+                        <button id="add-item-btn" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md flex items-center transition-all shadow-sm">
+                            <i class="fas fa-plus mr-2"></i> Adicionar Variação
+                        </button>
+                        <button id="add-product-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center transition-all shadow-sm">
+                            <i class="fas fa-tags mr-2"></i> Novo Produto Base
+                        </button>
+                         <button id="manage-products-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center transition-all shadow-sm">
+                            <i class="fas fa-cogs mr-2"></i> Gerenciar Produtos
+                        </button>
+                        <button id="transform-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center transition-all shadow-sm">
+                            <i class="fas fa-exchange-alt mr-2"></i> Realizar Transformação
+                        </button>
+                    </div>
+                    
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="search-input" placeholder="Buscar itens..." class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Atual</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível Mínimo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="product-modal-title" class="text-2xl font-bold text-gray-800">Adicionar Produto Base</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="product_id" name="product_id">
+                <div class="space-y-4">
+                    <div>
+                        <label for="product_name" class="block text-sm font-medium text-gray-700">Nome do Produto</label>
+                        <input type="text" id="product_name" name="product_name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: Bobina BOPP">
+                    </div>
+                    <div>
+                        <label for="product_category" class="block text-sm font-medium text-gray-700">Categoria</label>
+                        <input type="text" id="product_category" name="product_category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: Matéria-Prima">
+                    </div>
+                    <div>
+                        <label for="product_description" class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <textarea id="product_description" name="product_description" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" data-close-button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="item-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="item-modal-title" class="text-2xl font-bold text-gray-800">Adicionar Variação de Item</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="item-form" class="space-y-4">
+                 <input type="hidden" id="item_id" name="item_id">
+                <div>
+                    <label for="item_product_id" class="block text-sm font-medium text-gray-700">Produto Base</label>
+                    <select id="item_product_id" name="item_product_id" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"></select>
+                </div>
+                <div>
+                    <label for="item_variation" class="block text-sm font-medium text-gray-700">Dimensões / Variação</label>
+                    <input type="text" id="item_variation" name="item_variation" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ex: 100cm x 15 micras">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="item_quantity" class="block text-sm font-medium text-gray-700">Quantidade Atual</label>
+                        <input type="number" step="any" id="item_quantity" name="item_quantity" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div>
+                        <label for="item_min_level" class="block text-sm font-medium text-gray-700">Nível Mínimo</label>
+                        <input type="number" step="any" id="item_min_level" name="item_min_level" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="item_unit" class="block text-sm font-medium text-gray-700">Unidade de Medida</label>
+                        <input type="text" id="item_unit" name="item_unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ex: KG, Unidade, Rolo">
+                    </div>
+                    <div>
+                        <label for="item_code" class="block text-sm font-medium text-gray-700">Código (Opcional)</label>
+                        <input type="text" id="item_code" name="item_code" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+                <div>
+                    <label for="item_value" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                    <input type="number" step="0.01" id="item_value" name="item_value" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Ex: 150.75">
+                </div>
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" data-close-button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Salvar Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="manage-products-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-3xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Gerenciar Produtos Base</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-products-table-body" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+                </table>
+            </div>
+             <div class="mt-8 flex justify-end">
+                <button type="button" data-close-button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Exclusão</h2>
+            <p id="confirmation-message" class="text-gray-600 mb-6">Você tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="transformation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Transformação de Itens</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <form id="transformation-form" class="space-y-4">
+                <div>
+                    <label for="transform_from_item_id" class="block text-sm font-medium text-gray-700">Item de Origem</label>
+                    <select id="transform_from_item_id" name="transform_from_item_id" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                        <option value="">-- Selecione o item a ser transformado --</option>
+                    </select>
+                    <p id="from-item-stock-info" class="text-xs text-gray-500 mt-1"></p>
+                </div>
+
+                <div>
+                    <label for="transform_from_quantity" class="block text-sm font-medium text-gray-700">Quantidade a Diminuir</label>
+                    <input type="number" step="any" id="transform_from_quantity" name="transform_from_quantity" required disabled class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" placeholder="Qtd. que sairá do estoque">
+                </div>
+                
+                <div>
+                    <label for="transform_to_item_id" class="block text-sm font-medium text-gray-700">Item de Destino</label>
+                    <select id="transform_to_item_id" name="transform_to_item_id" required disabled class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100">
+                        <option value="">-- Selecione o item de origem primeiro --</option>
+                    </select>
+                </div>
+                
+
+                <div>
+                    <label for="transform_quantity" class="block text-sm font-medium text-gray-700">Quantidade a Transformar</label>
+                    <input type="number" step="any" id="transform_quantity" name="transform_quantity" required disabled class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100">
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" data-close-button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">Confirmar Transformação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/supabaseclient.js"></script>
+    <script src="/admin/scripts/estoque.js" defer></script>
+    <script src="/scripts/auth.js" defer></script>
+</body>
+</html>

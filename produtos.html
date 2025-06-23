@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Produtos | EPL Gráfica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/admin/styles.css"> 
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+<div class="flex h-full">
+    <div class="w-64 bg-gray-800 text-gray-200 flex flex-col h-full fixed">
+        <div class="p-4 border-b border-gray-700">
+            <img src="/imgs/LOGO2.webp" alt="Logo EPL" class="h-10 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/150x40/cccccc/000000?text=Logo+EPL';">
+        </div>
+        
+        <nav class="flex-grow pt-4">
+            <ul>
+                <li>
+                    <a href="/admin/dashboard.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
+                        <i class="fas fa-fw fa-chart-line w-6"></i>
+                        <span class="ml-3">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/clientes.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
+                        <i class="fas fa-fw fa-users w-6"></i>
+                        <span class="ml-3">Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/estoque.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
+                        <i class="fas fa-fw fa-boxes-stacked w-6"></i>
+                        <span class="ml-3">Estoque</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/produtos.html" class="sidebar-active-link flex items-center px-4 py-3 transition-colors">
+                        <i class="fas fa-fw fa-tag w-6"></i>
+                        <span class="ml-3">Produtos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/pedidos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
+                        <i class="fas fa-fw fa-shopping-cart w-6"></i>
+                        <span class="ml-3">Pedidos</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-700">
+            <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white">
+                <i class="fas fa-sign-out-alt w-6"></i>
+                <span class="ml-3">Sair</span>
+            </button>
+        </div>
+    </div>
+    <div class="flex-1 ml-64 overflow-y-auto">
+        <header class="bg-white p-6 shadow-sm">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-800">Cadastro de Produtos por Cliente</h1>
+                <div class="flex items-center">
+                    <span id="welcomeMessage" class="text-gray-600"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <div class="mb-6 flex justify-between items-center">
+                <button id="add-product-btn" class="bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-lg flex items-center transition-colors shadow-md">
+                    <i class="fas fa-plus mr-2"></i> Adicionar Novo Produto
+                </button>
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Pesquisar produtos..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-64">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Nome do Produto</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cliente</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Descrição</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
+                         <tr><td colspan="4" class="text-center py-10 text-gray-500">Nenhum produto cadastrado.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="product-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-xl">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800">Adicionar Novo Produto</h2>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+        </div>
+        <form id="product-form">
+            <input type="hidden" id="product-id" name="product-id">
+            
+            <section class="mb-6 p-4 border rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Informações Principais</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="cliente_id" class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                        <select id="cliente_id" name="cliente_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2">
+                            <option value="">Selecione um cliente</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="nome_produto" class="block text-sm font-medium text-gray-700">Nome do Produto</label>
+                        <input type="text" id="nome_produto" name="nome_produto" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: Rótulo Adesivo 10x5cm">
+                    </div>
+                    <div>
+                        <label for="valor_produto" class="block text-sm font-medium text-gray-700">Valor (Preço) do Produto</label>
+                        <input type="number" step="0.01" id="valor_produto" name="valor_produto" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="0.00">
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-6 p-4 border rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Ficha Técnica, Acabamento e Arte</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label for="mp_tipo" class="block text-sm font-medium text-gray-700">Matéria-Prima: Tipo</label>
+                        <input type="text" id="mp_tipo" name="mp_tipo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: BOPP Transparente">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="mp_descricao" class="block text-sm font-medium text-gray-700">Matéria-Prima: Descrição</label>
+                        <input type="text" id="mp_descricao" name="mp_descricao" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Filme Polipropileno Biorientado 30 micras">
+                    </div>
+                    <div>
+                        <label for="mp_corte" class="block text-sm font-medium text-gray-700">Matéria-Prima: Corte</label>
+                        <input type="text" id="mp_corte" name="mp_corte" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Reto">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <label for="prod_largura" class="block text-sm font-medium text-gray-700">Produto: Largura</label>
+                        <input type="text" id="prod_largura" name="prod_largura" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 100 mm">
+                    </div>
+                    <div>
+                        <label for="prod_altura" class="block text-sm font-medium text-gray-700">Produto: Altura</label>
+                        <input type="text" id="prod_altura" name="prod_altura" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 50 mm">
+                    </div>
+                    <div>
+                        <label for="prod_carreiras" class="block text-sm font-medium text-gray-700">Produto: Carreiras</label>
+                        <input type="text" id="prod_carreiras" name="prod_carreiras" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 2">
+                    </div>
+                    <div>
+                        <label for="prod_serrilha" class="block text-sm font-medium text-gray-700">Produto: Serrilha</label>
+                        <input type="text" id="prod_serrilha" name="prod_serrilha" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Não / Sim">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="prod_verniz" class="block text-sm font-medium text-gray-700">Produto: Verniz</label>
+                        <input type="text" id="prod_verniz" name="prod_verniz" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Verniz UV Brilho Total">
+                    </div>
+                    <div>
+                        <label for="prod_cor" class="block text-sm font-medium text-gray-700">Produto: Cor</label>
+                        <input type="text" id="prod_cor" name="prod_cor" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 4x0 (CMYK)">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="prod_aplicacao" class="block text-sm font-medium text-gray-700">Produto: Aplicação</label>
+                        <input type="text" id="prod_aplicacao" name="prod_aplicacao" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Automática em linha de produção">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="prod_obs" class="block text-sm font-medium text-gray-700">Produto: Observações</label>
+                    <textarea id="prod_obs" name="prod_obs" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <label for="acab_qtde_etq" class="block text-sm font-medium text-gray-700">Acabamento: Qtd. Etq. por Rolo</label>
+                        <input type="text" id="acab_qtde_etq" name="acab_qtde_etq" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 1.000">
+                    </div>
+                    <div>
+                        <label for="acab_metragem" class="block text-sm font-medium text-gray-700">Acabamento: Metragem</label>
+                        <input type="text" id="acab_metragem" name="acab_metragem" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 50m">
+                    </div>
+                    <div>
+                        <label for="acab_tubete" class="block text-sm font-medium text-gray-700">Acabamento: Tubete</label>
+                        <input type="text" id="acab_tubete" name="acab_tubete" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 3 polegadas (76mm)">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="acab_embalagem" class="block text-sm font-medium text-gray-700">Acabamento: Embalagem</label>
+                        <input type="text" id="acab_embalagem" name="acab_embalagem" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Caixa de papelão com 4 rolos">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 border-t pt-4">
+                    <div class="md:col-span-2">
+                        <label for="arte_upload" class="block text-sm font-medium text-gray-700">Upload da Arte</label>
+                        <input type="file" id="arte_upload" name="arte_upload" class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500" accept="image/*">
+                        <p class="mt-1 text-xs text-gray-500">Selecione uma nova imagem para fazer o upload. Isso substituirá a arte existente.</p>
+                        <input type="hidden" id="imagem_arte_url" name="imagem_arte_url">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Preview da Arte</label>
+                        <img id="arte-preview" src="https://placehold.co/150x100/e2e8f0/adb5bd?text=Sem+Arte" alt="Preview da arte" class="mt-1 w-full h-24 object-contain rounded-md border bg-gray-50" onerror="this.src='https://placehold.co/150x100/e2e8f0/adb5bd?text=Sem+Arte'; this.onerror=null;">
+                    </div>
+                </div>
+            </section>
+            
+            <div class="mt-8 flex justify-end space-x-3">
+                <button type="button" id="cancel-btn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                <button type="submit" class="bg-purple-800 text-white px-4 py-2 rounded-lg hover:bg-purple-900">Salvar Produto</button>
+            </div>
+        </form>
+    </div>
+</div>
+    
+<script src="/admin/supabaseclient.js" defer></script> 
+<script src="/admin/scripts/produtos.js" defer></script>
+<script src="/scripts/auth.js" defer></script>
+</body>
+</html>

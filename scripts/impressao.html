@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Impressão de Pedido</title>
+  <style>
+  body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    background-color: #f0f0f0;
+  }
+  #print-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px 0;
+  }
+  .layout {
+    position: relative;
+    width: 1654px;
+    height: 1178px;
+    background-image: url('/admin/scripts/pedido.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+  .campo {
+    position: absolute;
+    font-family: Arial, sans-serif;
+    font-size: 36px;
+    font-weight: bold;
+    color: #ca0b0b;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  #data { top: 90px; left: 112px; width: 250px; }
+  #dataEntrega { top: 90px; left: 377px; width: 250px; }
+  #cliente { top: 90px; left: 685px; width: 900px; }
+  #pedido { top: 170px; left: 115px; width: 300px; }
+
+  #mp_tipo { top: 285px; left: 115px; width: 350px; }
+  #mp_descricao { top: 285px; left: 489px; width: 700px; }
+  #mp_corte { top: 285px; left: 1210px; width: 350px; }
+
+  #prod_largura { top: 440px; left: 150px; width: 150px; }
+  #prod_altura { top: 440px; left: 450px; width: 150px; }
+  #prod_carreiras { top: 440px; left: 700px; width: 150px; }
+  #prod_serrilha { top: 440px; left: 930px; width: 150px; }
+  #prod_verniz { top: 440px; left: 1170px; width: 450px; }
+
+  #prod_cor { top: 530px; left: 110px; width: 600px; }
+  #prod_aplicacao { top: 530px; left: 723px; width: 850px; }
+  #prod_obs { top: 612px; left: 107px; width: 1450px; }
+
+  #acab_qtde_etq { top: 790px; left: 165px; width: 300px; }
+  #acab_metragem { top: 790px; left: 570px; width: 250px; }
+  #acab_tubete { top: 790px; left: 840px; width: 300px; }
+  #acab_embalagem { top: 790px; left: 1180px; width: 400px; }
+
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    body {
+      background-color: #fff;
+    }
+    #print-container {
+        gap: 0;
+        padding: 0;
+    }
+    .layout {
+      box-shadow: none;
+      width: 100%;
+      height: auto;
+      background-size: contain;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-inside: avoid;
+      margin-bottom: 1cm;
+    }
+    .layout:last-child {
+        margin-bottom: 0;
+    }
+    .campo {
+        font-size: 22px;
+    }
+    #prod_obs {
+        font-size: 18px;
+    }
+  }
+</style>
+</head>
+<body onload="preencherCampos()">
+
+<div id="print-container"></div>
+
+<script>
+  function preencherCampos() {
+    const printQueueJSON = localStorage.getItem('printOrderData');
+    if (!printQueueJSON) {
+      console.warn("Nenhum dado de pedido encontrado no localStorage para impressão.");
+      alert("Nenhum dado de pedido encontrado para impressão. Por favor, abra o pedido na tela anterior e clique em 'Imprimir'.");
+      return;
+    }
+
+    try {
+      const printQueue = JSON.parse(printQueueJSON);
+      if (!Array.isArray(printQueue) || printQueue.length === 0) {
+        alert("Os dados do pedido para impressão estão em um formato inválido ou o pedido não possui itens.");
+        return;
+      }
+      const printContainer = document.getElementById('print-container');
+      if (!printContainer) {
+        console.error("Container de impressão '#print-container' não encontrado.");
+        return;
+      }
+      printContainer.innerHTML = '';
+      const layoutTemplate = `
+        <div class="layout">
+          <img src="/admin/scripts/pedido.png" class="background-image" alt="Layout do Pedido">
+          <div id="data" class="campo"></div>
+          <div id="dataEntrega" class="campo"></div>
+          <div id="cliente" class="campo"></div>
+          <div id="pedido" class="campo"></div>
+          <div id="mp_tipo" class="campo"></div>
+          <div id="mp_descricao" class="campo"></div>
+          <div id="mp_corte" class="campo"></div>
+          <div id="prod_largura" class="campo"></div>
+          <div id="prod_altura" class="campo"></div>
+          <div id="prod_carreiras" class="campo"></div>
+          <div id="prod_serrilha" class="campo"></div>
+          <div id="prod_verniz" class="campo"></div>
+          <div id="prod_cor" class="campo"></div>
+          <div id="prod_aplicacao" class="campo"></div>
+          <div id="prod_obs" class="campo"></div>
+          <div id="acab_qtde_etq" class="campo"></div>
+          <div id="acab_metragem" class="campo"></div>
+          <div id="acab_tubete" class="campo"></div>
+          <div id="acab_embalagem" class="campo"></div>
+        </div>`;
+      printQueue.forEach(itemData => {
+        const tempWrapper = document.createElement('div');
+        tempWrapper.innerHTML = layoutTemplate.trim();
+        const layoutElement = tempWrapper.firstChild;
+        for (const fieldId in itemData) {
+          const fieldElement = layoutElement.querySelector('#' + fieldId);
+          if (fieldElement) {
+            fieldElement.textContent = itemData[fieldId];
+          }
+        }
+
+        printContainer.appendChild(layoutElement);
+      });
+
+setTimeout(() => {
+        window.print();
+      }, 500); 
+
+    } catch (e) {
+      console.error("Erro ao processar dados de impressão:", e);
+      alert("Ocorreu um erro ao processar os dados para impressão. Verifique o console para mais detalhes.");
+    }
+  }
+</script>
+
+</body>
+</html>
