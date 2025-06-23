@@ -6,7 +6,7 @@
     <title>Acesso ao Sistema | EPL Etiquetas e Rótulos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="/admin/scripts/supabase.js" defer></script> 
+    <script src="/scripts/supabase.js" defer></script> 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -89,7 +89,7 @@
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
-                window.location.href = '/admin/dashboard.html';
+                window.location.href = 'dashboard.html';
             }
         } catch (err) {
             // Este erro não deve mais acontecer, mas é bom manter o tratamento
@@ -128,7 +128,7 @@
                 }
                 
                 // Redireciona para o dashboard em caso de sucesso
-                window.location.href = '/admin/dashboard.html';
+                window.location.href = 'dashboard.html';
                 
             } catch (error) {
                 // Mostra a mensagem de erro
