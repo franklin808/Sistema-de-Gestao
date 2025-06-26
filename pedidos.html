@@ -8,17 +8,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="themes.css">
     <style>
         .badge-em_aberto { background-color: #f59e0b; color: #ffffff; }
         .badge-em_producao { background-color: #2564eb; color: #ffffff; }
         .badge-concluido { background-color: #16a34a; color:  #ffffff; }
         .badge-cancelado { background-color: #dc2626; color: #ffffff; }
+        .badge-nao_pago { background-color: #f87171; color: #ffffff; } 
+        .badge-pago { background-color: #22c55e; color: #ffffff; } 
+        .badge-atrasado { background-color: #b91c1c; color: #ffffff; }
+        .badge-a_vencer { background-color: #f59e0b; color: #ffffff; }
     </style>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="h-screen overflow-hidden">
     <div class="flex h-full">
-        <!-- Sidebar (Menu Lateral) -->
-        <div class="w-64 bg-gray-800 text-gray-200 flex flex-col h-full fixed">
+        <div class="w-64 sidebar flex flex-col h-full fixed">
             <div class="p-4 border-b border-gray-700">
                 <img src="LOGO2.webp" alt="Logo EPL" class="h-10 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/150x40/cccccc/000000?text=Logo+EPL';">
             </div>
@@ -27,71 +31,65 @@
                     <li><a href="dashboard.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-chart-line w-6"></i><span class="ml-3">Dashboard</span></a></li>
                     <li><a href="clientes.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-users w-6"></i><span class="ml-3">Clientes</span></a></li>
                     <li><a href="estoque.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-boxes-stacked w-6"></i><span class="ml-3">Estoque</span></a></li>
-                    <li><a href="produtos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-tag w-6"></i>
-                            <span class="ml-3">Produtos</span>
-                        </a>
-                    </li>
+                    <li><a href="produtos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-tag w-6"></i><span class="ml-3">Produtos</span></a></li>
                     <li><a href="pedidos.html" class="sidebar-active-link flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-shopping-cart w-6"></i><span class="ml-3">Pedidos</span></a></li>
                 </ul>
             </nav>
+            <div class="theme-switcher-container p-4 mt-auto border-t border-gray-700">
+                <h3 class="text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text-secondary)">Tema</h3>
+                <div class="flex items-center space-x-2">
+                    <button data-theme="light" class="theme-btn w-8 h-8 rounded-full bg-gray-200 transition-transform duration-200" title="Claro"></button>
+                    <button data-theme="gray" class="theme-btn w-8 h-8 rounded-full bg-gray-500 transition-transform duration-200" title="Cinza"></button>
+                    <button data-theme="dark" class="theme-btn w-8 h-8 rounded-full bg-gray-800 border border-gray-600 transition-transform duration-200" title="Escuro"></button>
+                </div>
+            </div>
             <div class="p-4 border-t border-gray-700">
-                <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white">
-                    <i class="fas fa-sign-out-alt w-6"></i><span class="ml-3">Sair</span>
-                </button>
+                <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white"><i class="fas fa-sign-out-alt w-6"></i><span class="ml-3">Sair</span></button>
             </div>
         </div>
 
-        <!-- Conteúdo Principal -->
         <div class="flex-1 ml-64 overflow-y-auto h-screen">
-            <header class="bg-white p-6 shadow-sm">
+            <header class="header p-6 shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-800">Gerenciamento de Pedidos</h1>
-                    <div class="flex items-center">
-                        <span id="welcomeMessage" class="text-gray-600">Bem-vindo de volta!</span>
-                    </div>
+                    <h1 class="text-3xl font-bold">Gerenciamento de Pedidos</h1>
+                    <div class="flex items-center"><span id="welcomeMessage" class="text-gray-600">Bem-vindo de volta!</span></div>
                 </div>
             </header>
             
-            <main class="p-6">
+            <main class="main-content p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-                    <button id="createOrderButton" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition duration-300 shadow-md">
-                        <i class="fas fa-plus"></i>
-                        <span>Criar Novo Pedido</span>
-                    </button>
-                    
+                    <button id="createOrderButton" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition duration-300 shadow-md"><i class="fas fa-plus"></i><span>Criar Novo Pedido</span></button>
                     <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 w-full md:w-auto">
                         <div class="relative w-full md:w-auto">
-                            <input type="text" id="search-input" placeholder="Buscar por cliente ou ID..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full">
+                            <input type="text" id="search-input" placeholder="Buscar por cliente ou ID..." class="pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full custom-input">
                             <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
-                        <select id="status-filter" class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full md:w-auto">
-                            <option value="">Todos os Status</option>
-                            <option value="em_aberto">Em Aberto</option>
-                            <option value="em_producao">Em Produção</option>
-                            <option value="concluido">Concluído</option>
-                            <option value="cancelado">Cancelado</option>
+                        <select id="status-filter" class="rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full md:w-auto custom-select">
+                            <option value="">Todos os Status</option><option value="em_aberto">Em Aberto</option><option value="em_producao">Em Produção</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option>
+                        </select>
+                        <select id="payment-status-filter" class="rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full md:w-auto custom-select">
+                            <option value="">Status Pagamento</option><option value="pago">Pago</option><option value="nao_pago">Não Pago</option><option value="atrasado">Atrasado</option>
                         </select>
                     </div>
                 </div>
                 
-                <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="card rounded-lg shadow overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full custom-table">
+                            <thead>
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nº Pedido</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data do Pedido</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Entrega</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nº Pedido</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Data do Pedido</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Data de Entrega</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Valor Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status Faturamento</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
-                                <!-- Linhas de pedidos serão inseridas aqui pelo JavaScript -->
-                                <tr><td colspan="7" class="text-center py-4 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando pedidos...</td></tr>
+                            <tbody id="orders-table-body" class="divide-y">
+                                <tr><td colspan="8" class="text-center py-4 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando pedidos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -100,227 +98,112 @@
         </div>
     </div>
     
-    <!-- Modal de Novo/Editar Pedido -->
     <div id="newOrderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
-        <div class="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-xl">
+        <div class="custom-modal-bg rounded-lg p-6 w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-xl">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 id="order-modal-title" class="text-2xl font-bold text-gray-800">Criar Novo Pedido</h2>
+                <h2 id="order-modal-title" class="text-2xl font-bold">Criar Novo Pedido</h2>
                 <button data-close-button class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
             
             <form id="newOrderForm" novalidate>
                 <input type="hidden" id="order-id" name="order_id">
-
-                <!-- Informações Básicas -->
                 <section class="mb-6 p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Informações Básicas do Pedido</h3>
+                    <h3 class="text-lg font-semibold mb-4">Informações Básicas do Pedido</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="client" class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-                            <select id="client" name="cliente_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2" required>
-                                <option value="">Selecione um cliente</option>
-                                <!-- Opções populadas pelo JS -->
-                            </select>
-                        </div>
-                        <div>
-                            <label for="orderDate" class="block text-sm font-medium text-gray-700 mb-1">Data do Pedido</label>
-                            <input type="date" id="orderDate" name="data_pedido" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2" required>
-                        </div>
+                        <div><label for="client" class="block text-sm font-medium mb-1">Cliente</label><select id="client" name="cliente_id" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-select" required><option value="">Selecione um cliente</option></select></div>
+                        <div><label for="orderDate" class="block text-sm font-medium mb-1">Data do Pedido</label><input type="date" id="orderDate" name="data_pedido" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-input" required></div>
                     </div>
                 </section>
-
-                <!-- Itens do Pedido -->
                 <section class="mb-6 p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Itens do Pedido</h3>
+                    <h3 class="text-lg font-semibold mb-4">Itens do Pedido</h3>
                     <div class="overflow-x-auto rounded-lg border">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full custom-table">
+                            <thead>
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">Produto do Cliente</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">Descrição Específica</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd.</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Unit.</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Arte</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider w-2/5">Produto do Cliente</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider w-2/5">Descrição Específica</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Qtd.</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Preço Unit.</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Subtotal</th><th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="orderItems" class="bg-white divide-y divide-gray-200">
-                                <!-- Linhas de itens serão adicionadas aqui dinamicamente -->
-                            </tbody>
+                            <tbody id="orderItems" class="divide-y"></tbody>
                         </table>
                     </div>
-                    
                     <div class="mt-4 pt-4 border-t flex flex-col md:flex-row gap-4 md:items-center">
-                        <h4 class="text-md font-semibold text-gray-700 whitespace-nowrap">Serviços Adicionais:</h4>
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="arte-checkbox" name="servico_arte" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                            <label for="arte-checkbox" class="text-sm font-medium text-gray-700">Arte</label>
-                            <input type="number" id="arte-valor" name="servico_arte_valor" value="100.00" step="0.01" class="border-gray-300 rounded-md shadow-sm w-28 p-2 text-sm">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="cliche-checkbox" name="servico_cliche" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                            <label for="cliche-checkbox" class="text-sm font-medium text-gray-700">Clichê</label>
-                            <input type="number" id="cliche-valor" name="servico_cliche_valor" value="350.00" step="0.01" class="border-gray-300 rounded-md shadow-sm w-28 p-2 text-sm">
-                        </div>
+                        <h4 class="text-md font-semibold whitespace-nowrap">Serviços Adicionais:</h4>
+                        <div class="flex items-center space-x-2"><input type="checkbox" id="arte-checkbox" name="servico_arte" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"><label for="arte-checkbox" class="text-sm font-medium">Arte</label><input type="number" id="arte-valor" name="servico_arte_valor" value="100.00" step="0.01" class="rounded-md shadow-sm w-28 p-2 text-sm custom-input"></div>
+                        <div class="flex items-center space-x-2"><input type="checkbox" id="cliche-checkbox" name="servico_cliche" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"><label for="cliche-checkbox" class="text-sm font-medium">Clichê</label><input type="number" id="cliche-valor" name="servico_cliche_valor" value="350.00" step="0.01" class="rounded-md shadow-sm w-28 p-2 text-sm custom-input"></div>
                     </div>
-
-                    <button type="button" id="addItemButton" class="mt-4 text-purple-600 hover:text-purple-800 flex items-center space-x-1 px-3 py-2 rounded-md transition-colors">
-                        <i class="fas fa-plus"></i> <span>Adicionar Item ao Pedido</span>
-                    </button>
+                    <button type="button" id="addItemButton" class="mt-4 text-purple-600 hover:text-purple-800 flex items-center space-x-1 px-3 py-2 rounded-md transition-colors"><i class="fas fa-plus"></i> <span>Adicionar Item ao Pedido</span></button>
                 </section>
-
-                <!-- Detalhes de Impressão -->
                 <section class="mb-6 p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Detalhes Específicos para Impressão</h3>
+                    <h3 class="text-lg font-semibold mb-4">Detalhes Específicos para Impressão</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                            <label for="order_mp_tipo" class="block text-sm font-medium text-gray-700">Matéria-Prima: Tipo</label>
-                            <input type="text" id="order_mp_tipo" name="mp_tipo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: BOPP Transparente">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="order_mp_descricao" class="block text-sm font-medium text-gray-700">Matéria-Prima: Descrição</label>
-                            <input type="text" id="order_mp_descricao" name="mp_descricao" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Filme Polipropileno Biorientado 30 micras">
-                        </div>
-                        <div>
-                            <label for="order_mp_corte" class="block text-sm font-medium text-gray-700">Matéria-Prima: Corte</label>
-                            <input type="text" id="order_mp_corte" name="mp_corte" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Reto">
-                        </div>
-                        <div>
-                            <label for="order_prod_largura" class="block text-sm font-medium text-gray-700">Produto: Largura</label>
-                            <input type="text" id="order_prod_largura" name="prod_largura" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 100 mm">
-                        </div>
-                        <div>
-                            <label for="order_prod_altura" class="block text-sm font-medium text-gray-700">Produto: Altura</label>
-                            <input type="text" id="order_prod_altura" name="prod_altura" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 50 mm">
-                        </div>
-                        <div>
-                            <label for="order_prod_carreiras" class="block text-sm font-medium text-gray-700">Produto: Carreiras</label>
-                            <input type="text" id="order_prod_carreiras" name="prod_carreiras" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 2">
-                        </div>
-                        <div>
-                            <label for="order_prod_serrilha" class="block text-sm font-medium text-gray-700">Produto: Serrilha</label>
-                            <input type="text" id="order_prod_serrilha" name="prod_serrilha" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Não / Sim">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="order_prod_verniz" class="block text-sm font-medium text-gray-700">Produto: Verniz</label>
-                            <input type="text" id="order_prod_verniz" name="prod_verniz" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Verniz UV Brilho Total">
-                        </div>
-                        <div>
-                            <label for="order_prod_cor" class="block text-sm font-medium text-gray-700">Produto: Cor</label>
-                            <input type="text" id="order_prod_cor" name="prod_cor" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 4x0 (CMYK)">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="order_prod_aplicacao" class="block text-sm font-medium text-gray-700">Produto: Aplicação</label>
-                            <input type="text" id="order_prod_aplicacao" name="prod_aplicacao" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Automática em linha de produção">
-                        </div>
-                        <div class="md:col-span-3">
-                            <label for="order_prod_obs" class="block text-sm font-medium text-gray-700">Produto: Observações</label>
-                            <textarea id="order_prod_obs" name="prod_obs" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2"></textarea>
-                        </div>
-                         <div>
-                            <label for="order_acab_qtde_etq" class="block text-sm font-medium text-gray-700">Acabamento: Qtd. Etq.</label>
-                            <input type="text" id="order_acab_qtde_etq" name="acab_qtde_etq" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 10.000">
-                        </div>
-                        <div>
-                            <label for="order_acab_metragem" class="block text-sm font-medium text-gray-700">Acabamento: Metragem</label>
-                            <input type="text" id="order_acab_metragem" name="acab_metragem" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 500m">
-                        </div>
-                        <div>
-                            <label for="order_acab_tubete" class="block text-sm font-medium text-gray-700">Acabamento: Tubete</label>
-                            <input type="text" id="order_acab_tubete" name="acab_tubete" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: 3 polegadas (76mm)">
-                        </div>
-                        <div class="md:col-span-3">
-                            <label for="order_acab_embalagem" class="block text-sm font-medium text-gray-700">Acabamento: Embalagem</label>
-                            <input type="text" id="order_acab_embalagem" name="acab_embalagem" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2" placeholder="Ex: Caixa de papelão com 4 rolos">
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Detalhes Adicionais -->
-                <section class="mb-6 p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Detalhes Adicionais do Pedido</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="deliveryDate" class="block text-sm font-medium text-gray-700 mb-1">Data de Entrega</label>
-                            <input type="date" id="deliveryDate" name="data_entrega" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2">
-                        </div>
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select id="status" name="status" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2">
-                                <option value="em_aberto">Em Aberto</option>
-                                <option value="em_producao">Em Produção</option>
-                                <option value="concluido">Concluído</option>
-                                <option value="cancelado">Cancelado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Observações Gerais do Pedido</label>
-                        <textarea id="notes" name="observacoes_gerais_from_form" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2"></textarea>
+                        <div><label for="order_mp_tipo" class="block text-sm font-medium">Matéria-Prima: Tipo</label><input type="text" id="order_mp_tipo" name="mp_tipo" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: BOPP Transparente"></div>
+                        <div class="md:col-span-2"><label for="order_mp_descricao" class="block text-sm font-medium">Matéria-Prima: Descrição</label><input type="text" id="order_mp_descricao" name="mp_descricao" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Filme Polipropileno Biorientado 30 micras"></div>
+                        <div><label for="order_mp_corte" class="block text-sm font-medium">Matéria-Prima: Corte</label><input type="text" id="order_mp_corte" name="mp_corte" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Reto"></div>
+                        <div><label for="order_prod_largura" class="block text-sm font-medium">Produto: Largura</label><input type="text" id="order_prod_largura" name="prod_largura" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 100 mm"></div>
+                        <div><label for="order_prod_altura" class="block text-sm font-medium">Produto: Altura</label><input type="text" id="order_prod_altura" name="prod_altura" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 50 mm"></div>
+                        <div><label for="order_prod_carreiras" class="block text-sm font-medium">Produto: Carreiras</label><input type="text" id="order_prod_carreiras" name="prod_carreiras" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 2"></div>
+                        <div><label for="order_prod_serrilha" class="block text-sm font-medium">Produto: Serrilha</label><input type="text" id="order_prod_serrilha" name="prod_serrilha" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Não / Sim"></div>
+                        <div class="md:col-span-2"><label for="order_prod_verniz" class="block text-sm font-medium">Produto: Verniz</label><input type="text" id="order_prod_verniz" name="prod_verniz" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Verniz UV Brilho Total"></div>
+                        <div><label for="order_prod_cor" class="block text-sm font-medium">Produto: Cor</label><input type="text" id="order_prod_cor" name="prod_cor" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 4x0 (CMYK)"></div>
+                        <div class="md:col-span-2"><label for="order_prod_aplicacao" class="block text-sm font-medium">Produto: Aplicação</label><input type="text" id="order_prod_aplicacao" name="prod_aplicacao" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Automática em linha de produção"></div>
+                        <div class="md:col-span-3"><label for="order_prod_obs" class="block text-sm font-medium">Produto: Observações</label><textarea id="order_prod_obs" name="prod_obs" rows="2" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input"></textarea></div>
+                         <div><label for="order_acab_qtde_etq" class="block text-sm font-medium">Acabamento: Qtd. Etq.</label><input type="text" id="order_acab_qtde_etq" name="acab_qtde_etq" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 10.000"></div>
+                        <div><label for="order_acab_metragem" class="block text-sm font-medium">Acabamento: Metragem</label><input type="text" id="order_acab_metragem" name="acab_metragem" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 500m"></div>
+                        <div><label for="order_acab_tubete" class="block text-sm font-medium">Acabamento: Tubete</label><input type="text" id="order_acab_tubete" name="acab_tubete" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: 3 polegadas (76mm)"></div>
+                        <div class="md:col-span-3"><label for="order_acab_embalagem" class="block text-sm font-medium">Acabamento: Embalagem</label><input type="text" id="order_acab_embalagem" name="acab_embalagem" class="mt-1 block w-full rounded-md shadow-sm px-3 py-2 custom-input" placeholder="Ex: Caixa de papelão com 4 rolos"></div>
                     </div>
                 </section>
                 
-                <!-- INÍCIO DA ALTERAÇÃO: Seção de Total com Detalhamento -->
+                <section class="mb-6 p-4 border rounded-lg shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4">Detalhes e Faturamento</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 items-start">
+                        <div><label for="deliveryDate" class="block text-sm font-medium mb-1">Data de Entrega</label><input type="date" id="deliveryDate" name="data_entrega" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-input"></div>
+                        <div><label for="status" class="block text-sm font-medium mb-1">Status do Pedido</label><select id="status" name="status" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-select"><option value="em_aberto">Em Aberto</option><option value="em_producao">Em Produção</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option></select></div>
+                        <div><label for="tipo_pagamento" class="block text-sm font-medium mb-1">Tipo de Pagamento</label><select id="tipo_pagamento" name="tipo_pagamento" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-select"><option value="a_vista">À Vista</option><option value="a_prazo">A Prazo</option></select></div>
+                        <div><label for="status_faturamento" class="block text-sm font-medium mb-1">Status do Pagamento</label><select id="status_faturamento" name="status_faturamento" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-select"><option value="nao_pago">Não Pago</option><option value="pago">Pago</option></select></div>
+                        <div id="data-vencimento-container" class="hidden"><label for="data_vencimento_faturamento" class="block text-sm font-medium mb-1">Data de Vencimento</label><input type="date" id="data_vencimento_faturamento" name="data_vencimento_faturamento" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-input"></div>
+                    </div>
+                    <div><label for="notes" class="block text-sm font-medium mb-1">Observações Gerais do Pedido</label><textarea id="notes" name="obs_gerais" rows="3" class="w-full rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 px-3 py-2 custom-input"></textarea></div>
+                </section>
+                
                 <div class="flex flex-col md:flex-row justify-between items-center border-t pt-4 space-y-4 md:space-y-0">
                     <div class="w-full md:w-auto md:max-w-md lg:max-w-sm space-y-2 text-right">
-                        <div class="flex justify-between items-center text-lg">
-                            <span class="font-medium text-gray-600">Subtotal dos Itens:</span>
-                            <span id="itemsSubtotal" class="font-semibold text-gray-800 w-32 text-right">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between items-center text-lg">
-                            <span class="font-medium text-gray-600">Serviços Adicionais:</span>
-                            <span id="servicesTotal" class="font-semibold text-gray-800 w-32 text-right">R$ 0,00</span>
-                        </div>
-                        <div class="flex justify-between items-center text-2xl border-t pt-2 mt-2">
-                            <span class="font-bold text-gray-800">Total do Pedido:</span>
-                            <span id="orderTotal" class="font-bold text-purple-700 w-32 text-right">R$ 0,00</span>
-                        </div>
+                        <div class="flex justify-between items-center text-lg"><span class="font-medium text-gray-600">Subtotal dos Itens:</span><span id="itemsSubtotal" class="font-semibold w-32 text-right">R$ 0,00</span></div>
+                        <div class="flex justify-between items-center text-lg"><span class="font-medium text-gray-600">Serviços Adicionais:</span><span id="servicesTotal" class="font-semibold w-32 text-right">R$ 0,00</span></div>
+                        <div class="flex justify-between items-center text-2xl border-t pt-2 mt-2"><span class="font-bold">Total do Pedido:</span><span id="orderTotal" class="font-bold text-purple-700 w-32 text-right">R$ 0,00</span></div>
                     </div>
                     <div class="flex space-x-3 self-end">
-                        <button type="button" data-close-button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                            Cancelar
-                        </button>
-                        <button type="button" id="printOrderButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors hidden">
-                            <i class="fas fa-print mr-2"></i> Imprimir Pedido
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                            Salvar Pedido
-                        </button>
+                        <button type="button" data-close-button class="px-4 py-2 rounded-lg btn-secondary">Cancelar</button>
+                        <button type="button" id="printOrderButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors hidden"><i class="fas fa-print mr-2"></i> Imprimir Pedido</button>
+                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Salvar Pedido</button>
                     </div>
                 </div>
-                <!-- FIM DA ALTERAÇÃO -->
             </form>
         </div>
     </div>
     
-    <!-- Modal de Confirmação (Excluir) -->
     <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Exclusão</h2>
+        <div class="custom-modal-bg rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4">Confirmar Exclusão</h2>
             <p id="confirmation-message" class="text-gray-600 mb-6">Você tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.</p>
             <div class="flex justify-end space-x-3">
-                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancelar</button>
+                <button id="cancel-delete-btn" class="px-4 py-2 rounded-lg btn-secondary">Cancelar</button>
                 <button id="confirm-delete-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Excluir</button>
             </div>
         </div>
     </div>
-
-    <!-- Modal de Mensagem (Alertas) -->
     <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
-            <h2 id="message-modal-title" class="text-xl font-bold text-gray-800 mb-4">Mensagem</h2>
+        <div class="custom-modal-bg rounded-lg shadow-xl p-8 w-full max-w-sm">
+            <h2 id="message-modal-title" class="text-xl font-bold mb-4">Mensagem</h2>
             <p id="message-modal-text" class="text-gray-600 mb-6"></p>
-            <div class="flex justify-end">
-                <button data-close-button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Fechar</button>
-            </div>
+            <div class="flex justify-end"><button data-close-button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Fechar</button></div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="scripts/supabaseclient.js"></script>
     <script src="scripts/auth.js" defer></script>
     <script src="scripts/pedidos.js" defer></script>
-
+    <script src="scripts/theme.js" defer></script>
 </body>
 </html>

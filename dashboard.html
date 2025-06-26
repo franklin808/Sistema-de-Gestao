@@ -8,155 +8,82 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/scripts/supabaseclient.js" defer></script> 
-    <script src="/scripts/dashboard.js" defer></script> 
     <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="themes.css"> <!-- NOVO ARQUIVO DE TEMA -->
 <style>
+    /* Estilos para badges de status dos pedidos */
     .badge-em_aberto { background-color: #f59e0b; color: #ffffff; }
-    .badge-em_producao { background-color: #2564eb; color: #ffffff; }
-    .badge-concluido { background-color: #16a34a; color:  #ffffff; }
+    .badge-em_producao { background-color: #3b82f6; color: #ffffff; }
+    .badge-concluido { background-color: #22c55e; color: #ffffff; }
     .badge-cancelado { background-color: #dc2626; color: #ffffff; }
+
+    /* ATUALIZADO: Estilos para badges de status de faturamento */
+    .badge-nao_pago { background-color: #ef4444; color: #ffffff; }
+    .badge-pago { background-color: #16a34a; color: #ffffff; }
 </style>
 
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="h-screen overflow-hidden">
     <div class="flex h-full">
-        <div class="w-64 bg-gray-800 text-gray-200 flex flex-col h-full fixed">
+        <div class="w-64 sidebar flex flex-col h-full fixed">
             <div class="p-4 border-b border-gray-700">
-                <img src="LOGO2.webp" alt="Logo EPL" class="h-10 object-contain">
+                <img src="LOGO2.webp" alt="Logo EPL" class="h-10 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/150x40/cccccc/000000?text=Logo+EPL';">
             </div>
             
             <nav class="flex-grow pt-4">
                 <ul>
-                    <li>
-                        <a href="dashboard.html" class="sidebar-active-link flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-chart-line w-6"></i>
-                            <span class="ml-3">Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="clientes.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-users w-6"></i>
-                            <span class="ml-3">Clientes</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="estoque.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-boxes-stacked w-6"></i> 
-                            <span class="ml-3">Estoque</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="produtos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-tag w-6"></i>
-                            <span class="ml-3">Produtos</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="pedidos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors">
-                            <i class="fas fa-fw fa-shopping-cart w-6"></i>
-                            <span class="ml-3">Pedidos</span>
-                        </a>
-                    </li>
+                    <li><a href="dashboard.html" class="sidebar-active-link flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-chart-line w-6"></i><span class="ml-3">Dashboard</span></a></li>
+                    <li><a href="clientes.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-users w-6"></i><span class="ml-3">Clientes</span></a></li>
+                    <li><a href="estoque.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-boxes-stacked w-6"></i><span class="ml-3">Estoque</span></a></li>
+                    <li><a href="produtos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-tag w-6"></i><span class="ml-3">Produtos</span></a></li>
+                    <li><a href="pedidos.html" class="sidebar-hover-effect flex items-center px-4 py-3 transition-colors"><i class="fas fa-fw fa-shopping-cart w-6"></i><span class="ml-3">Pedidos</span></a></li>
                 </ul>
             </nav>
             
+            <div class="theme-switcher-container p-4 mt-auto border-t border-gray-700">
+                <h3 class="text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text-secondary)">Tema</h3>
+                <div class="flex items-center space-x-2">
+                    <button data-theme="light" class="theme-btn w-8 h-8 rounded-full bg-gray-200 transition-transform duration-200" title="Claro"></button>
+                    <button data-theme="gray" class="theme-btn w-8 h-8 rounded-full bg-gray-500 transition-transform duration-200" title="Cinza"></button>
+                    <button data-theme="dark" class="theme-btn w-8 h-8 rounded-full bg-gray-800 border border-gray-600 transition-transform duration-200" title="Escuro"></button>
+                </div>
+            </div>
+
             <div class="p-4 border-t border-gray-700">
-                <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white">
-                    <i class="fas fa-sign-out-alt w-6"></i>
-                    <span class="ml-3">Sair</span>
-                </button>
+                <button id="logoutBtn" class="sidebar-hover-effect w-full flex items-center px-4 py-2 rounded transition-colors text-red-400 hover:text-white"><i class="fas fa-sign-out-alt w-6"></i><span class="ml-3">Sair</span></button>
             </div>
         </div>
         
         <div class="flex-1 ml-64 overflow-y-auto h-screen">
-            <header class="bg-white p-6 shadow-sm">
+            <header class="header p-6 shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
-                    <div class="flex items-center">
-                        <span id="welcomeMessage" class="text-gray-600">Bem-vindo de volta!</span>
-                    </div>
+                    <h1 class="text-3xl font-bold">Dashboard</h1>
+                    <div class="flex items-center"><span id="welcomeMessage" class="text-gray-600">Bem-vindo de volta!</span></div>
                 </div>
             </header>
             
-            <main class="p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-            <div class="p-4 rounded-full bg-purple-100 text-purple-900 mr-4">
-                <i class="fas fa-money-bill-wave text-2xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-600">Faturamento do Mês</p>
-                <span id="kpi-faturamento" class="text-2xl font-bold">R$ 0,00</span>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-            <div class="p-4 rounded-full bg-blue-100 text-blue-900 mr-4">
-                <i class="fas fa-hourglass-half text-2xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-600">Pedidos em Aberto</p>
-                <span id="kpi-pedidos-aberto" class="text-2xl font-bold">0</span>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-            <div class="p-4 rounded-full bg-green-100 text-green-900 mr-4">
-                <i class="fas fa-check-double text-2xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-600">Pedidos Concluídos no Mês</p>
-                <span id="kpi-pedidos-concluidos" class="text-2xl font-bold">0</span>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center">
-            <div class="p-4 rounded-full bg-red-100 text-red-900 mr-4">
-                <i class="fas fa-box-open text-2xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-600">Itens em Estoque Baixo</p>
-                <span id="kpi-estoque-baixo" class="text-2xl font-bold">0</span>
-            </div>
-        </div>
-
-    </div>
+            <main class="main-content p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-purple-100 text-purple-900 mr-4"><i class="fas fa-money-bill-wave text-2xl"></i></div><div><p class="text-gray-600">Faturamento do Mês</p><span id="kpi-faturamento" class="text-2xl font-bold">R$ 0,00</span></div></div></a>
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-blue-100 text-blue-900 mr-4"><i class="fas fa-hourglass-half text-2xl"></i></div><div><p class="text-gray-600">Pedidos em Aberto</p><span id="kpi-pedidos-aberto" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-green-100 text-green-900 mr-4"><i class="fas fa-check-double text-2xl"></i></div><div><p class="text-gray-600">Concluídos no Mês</p><span id="kpi-pedidos-concluidos" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/estoque.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-red-100 text-red-900 mr-4"><i class="fas fa-box-open text-2xl"></i></div><div><p class="text-gray-600">Itens em Estoque Baixo</p><span id="kpi-estoque-baixo" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/produtos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-orange-100 text-orange-900 mr-4"><i class="fas fa-palette text-2xl"></i></div><div><p class="text-gray-600">Artes Pendentes</p><span id="kpi-artes-pendentes" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/produtos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-indigo-100 text-indigo-900 mr-4"><i class="fas fa-stamp text-2xl"></i></div><div><p class="text-gray-600">Clichês Pendentes</p><span id="kpi-cliches-pendentes" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-yellow-100 text-yellow-900 mr-4"><i class="fas fa-file-invoice-dollar text-2xl"></i></div><div><p class="text-gray-600">Aguardando Faturamento</p><span id="kpi-aguardando-faturamento" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-red-100 text-red-900 mr-4"><i class="fas fa-file-invoice-dollar text-2xl"></i></div><div><p class="text-gray-600">Pagamentos Atrasados</p><span id="kpi-pagamento-atrasado" class="text-2xl font-bold">0</span></div></div></a>
+                </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Faturamento dos Últimos 6 Meses</h2>
-                        <div class="h-64">
-                            <canvas id="graficoFaturamento"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Últimos Pedidos</h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="bg-gray-200 text-gray-700">
-                                        <th class="px-4 py-2 text-left">Pedido</th>
-                                        <th class="px-4 py-2 text-left">Cliente</th>
-                                        <th class="px-4 py-2 text-left">Valor</th>
-                                        <th class="px-4 py-2 text-left">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabela-pedidos-recentes">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div class="card rounded-lg shadow-md p-6"><h2 class="text-xl font-semibold mb-4">Faturamento dos Últimos 6 Meses</h2><div class="h-64"><canvas id="graficoFaturamento"></canvas></div></div>
+                    <div class="card rounded-lg shadow-md p-6"><h2 class="text-xl font-semibold mb-4">Últimos Pedidos</h2><div class="overflow-x-auto"><table class="w-full custom-table"><thead><tr class="text-gray-700"><th class="px-4 py-2 text-left">Pedido</th><th class="px-4 py-2 text-left">Cliente</th><th class="px-4 py-2 text-left">Valor</th><th class="px-4 py-2 text-left">Status</th><th class="px-4 py-2 text-left">Status Faturamento</th></tr></thead><tbody id="tabela-pedidos-recentes"></tbody></table></div></div>
                 </div>
             </main>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
+    <script src="scripts/supabaseclient.js" defer></script> 
+    <script src="scripts/dashboard.js" defer></script>
     <script src="scripts/auth.js" defer></script>
-
+    <script src="scripts/theme.js" defer></script>
 </body>
 </html>

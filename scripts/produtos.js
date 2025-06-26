@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let allProducts = [];
 
     /**
+     * Formata o texto do status para exibição (ex: 'em_aberto' -> 'Em Aberto').
+     * @param {string} status - O status vindo do banco.
+     * @returns {string} O status formatado.
+     */
+    function formatStatusText(status) {
+        if (!status) return 'Em Aberto'; // Padrão
+        return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    /**
+     * Converte URLs do Google Drive para um formato que pode ser embarcado.
      * @param {string} url
      * @returns {string}
      */
@@ -38,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return url;
     }
 
+    /**
+     * Carrega a lista de clientes para preencher o dropdown no modal.
+     */
     async function loadClientsForDropdown() {
         const { data: clients, error } = await supabase
             .from('clientes')
@@ -58,30 +72,49 @@ document.addEventListener('DOMContentLoaded', () => {
         clientSelect.value = selectedValue;
     }
 
+    /**
+     * Renderiza a tabela de produtos com os dados fornecidos.
+     * @param {Array} products - A lista de produtos a ser renderizada.
+     */
     function renderProductsTable(products) {
         productsTableBody.innerHTML = ''; 
 
         if (products.length === 0) {
-            productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-500">Nenhum produto encontrado.</td></tr>`;
+            // Colspan atualizado para 6 colunas
+            productsTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500">Nenhum produto encontrado.</td></tr>`;
             return;
         }
 
         products.forEach(product => {
             const clientName = product.clientes ? product.clientes.nome : 'Cliente não especificado';
-            let description = product.nome; 
-            if (product.observacoes) {
+            let description = 'Nenhuma descrição';
+             if (product.observacoes) {
                 try {
                     const details = JSON.parse(product.observacoes);
-                    description = details.prod_obs || product.nome;
+                    description = details.prod_obs || 'Sem observações';
                 } catch (e) {
-                    description = product.nome;
+                    description = 'Observação inválida';
                 }
             }
+
+            // Define um valor padrão caso os status sejam nulos
+            const statusArte = product.status_arte || 'em_aberto';
+            const statusCliche = product.status_cliche || 'em_aberto';
 
             productsTableBody.innerHTML += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.nome}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${clientName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full badge-${statusArte}">
+                            ${formatStatusText(statusArte)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                         <span class="px-2 py-1 text-xs font-semibold rounded-full badge-${statusCliche}">
+                            ${formatStatusText(statusCliche)}
+                        </span>
+                    </td>
                     <td class="px-6 py-4 text-sm text-gray-500 truncate" title="${description}">${description}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button class="text-blue-600 hover:text-blue-800 mr-3 edit-btn" title="Editar" data-id="${product.id}"><i class="fas fa-edit"></i></button>
@@ -92,13 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /**
+     * Carrega todos os produtos do banco de dados e os renderiza na tabela.
+     */
     async function loadProducts() {
-        productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i>Carregando...</td></tr>`;
+        // Colspan atualizado para 6 colunas
+        productsTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i>Carregando...</td></tr>`;
         const { data, error } = await supabase.from('produtos_cliente').select(`*, clientes (nome)`).order('nome', { ascending: true });
 
         if (error) {
             console.error("Erro ao carregar produtos:", error);
-            productsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-red-500">Erro ao carregar produtos.</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500">Erro ao carregar produtos.</td></tr>`;
             return;
         }
 
@@ -106,6 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProductsTable(allProducts);
     }
 
+    /**
+     * Exibe o modal para adicionar ou editar um produto.
+     * @param {Object|null} product - O objeto do produto para edição, ou null para adicionar.
+     */
     async function showProductModal(product = null) {
         productForm.reset();
         await loadClientsForDropdown(); 
@@ -116,6 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
             clientSelect.value = product.cliente_id;
             document.getElementById('nome_produto').value = product.nome;
             document.getElementById('valor_produto').value = product.valor ? parseFloat(product.valor).toFixed(2) : '0.00';
+            
+            // Preenche os novos campos de status
+            document.getElementById('status_arte').value = product.status_arte || 'em_aberto';
+            document.getElementById('status_cliche').value = product.status_cliche || 'em_aberto';
+
             const savedUrl = product.imagem_arte_url || '';
             imageUrlInput.value = savedUrl;
             artPreview.src = convertToEmbeddableUrl(savedUrl);
@@ -137,17 +183,27 @@ document.addEventListener('DOMContentLoaded', () => {
             imageUrlInput.value = '';
             artUploadInput.value = '';
             artPreview.src = convertToEmbeddableUrl('');
+            // Define o valor padrão para os status ao adicionar novo produto
+            document.getElementById('status_arte').value = 'em_aberto';
+            document.getElementById('status_cliche').value = 'em_aberto';
         }
 
         productModal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
     }
 
+    /**
+     * Fecha o modal de produto.
+     */
     function closeModal() {
         productModal.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     }
 
+    /**
+     * Lida com o envio do formulário, salvando o produto (novo ou editado).
+     * @param {Event} e - O evento de submit do formulário.
+     */
     async function handleFormSubmit(e) {
         e.preventDefault();
         
@@ -204,7 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
             nome: formData.get('nome_produto'),
             valor: parseFloat(formData.get('valor_produto')) || 0,
             imagem_arte_url: finalImageUrl,
-            observacoes: JSON.stringify(details)
+            observacoes: JSON.stringify(details),
+            // Adiciona os novos campos de status ao objeto de dados
+            status_arte: formData.get('status_arte'),
+            status_cliche: formData.get('status_cliche')
         };
 
         let error;
@@ -225,6 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loadProducts();
         }
     }
+
+    /**
+     * Lida com cliques na tabela (editar, excluir).
+     * @param {Event} e - O evento de clique.
+     */
     async function handleTableClick(e) {
         const target = e.target.closest('button');
         if (!target) return;
@@ -253,12 +317,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Filtra os produtos exibidos na tabela com base no termo de busca.
+     */
     function handleSearch() {
         const searchTerm = searchInput.value.toLowerCase();
-        const filteredProducts = allProducts.filter(p => (p.nome.toLowerCase().includes(searchTerm) || (p.clientes && p.clientes.nome.toLowerCase().includes(searchTerm))));
+        const filteredProducts = allProducts.filter(p => (
+            p.nome.toLowerCase().includes(searchTerm) || 
+            (p.clientes && p.clientes.nome.toLowerCase().includes(searchTerm))
+        ));
         renderProductsTable(filteredProducts);
     }
 
+    // Adiciona os event listeners
     addProductBtn.addEventListener('click', () => showProductModal(null));
     closeModalBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
@@ -276,5 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Carrega os produtos iniciais
     loadProducts();
 });

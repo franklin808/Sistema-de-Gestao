@@ -1,0 +1,151 @@
+/* /themes.css */
+/* Define as variáveis de cor para cada tema */
+
+/* ------------------------- */
+/* TEMA CLARO (PADRÃO)       */
+/* ------------------------- */
+:root {
+    --body-bg: #f3f4f6; /* cinza bem claro */
+    --sidebar-bg: #1f2937;
+    --sidebar-text: #e5e7eb;
+    --sidebar-link-active-bg: #4c1d95;
+    --sidebar-link-hover-bg: #374151;
+    --header-bg: #ffffff;
+    --card-bg: #ffffff;
+    --table-header-bg: #f3f4f6;
+    --table-row-hover-bg: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-on-sidebar: #e5e7eb;
+    --border-color: #e5e7eb;
+    --modal-bg: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+    --button-secondary-bg: #e5e7eb;
+    --button-secondary-text: #1f2937;
+    --button-secondary-hover-bg: #d1d5db;
+}
+
+/* ------------------------- */
+/* TEMA CINZA (SOLICITADO)   */
+/* ------------------------- */
+body.theme-gray {
+    --body-bg: #d1d5db; /* cinza claro para o fundo */
+    --header-bg: #f3f4f6;
+    --card-bg: #ffffff;
+    --table-header-bg: #e5e7eb;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --border-color: #d1d5db;
+}
+
+/* ------------------------- */
+/* TEMA ESCURO               */
+/* ------------------------- */
+body.theme-dark {
+    --body-bg: #111827;
+    --sidebar-bg: #1f2937; /* Pode ser o mesmo ou mais escuro */
+    --sidebar-link-active-bg: #5b21b6;
+    --sidebar-link-hover-bg: #374151;
+    --header-bg: #1f2937;
+    --card-bg: #374151;
+    --table-header-bg: #1f2937;
+    --table-row-hover-bg: #4b5563;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-on-sidebar: #d1d5db;
+    --border-color: #4b5563;
+    --modal-bg: #374151;
+    --input-bg: #4b5563;
+    --input-border: #6b7280;
+    --button-secondary-bg: #4b5563;
+    --button-secondary-text: #f9fafb;
+    --button-secondary-hover-bg: #6b7280;
+}
+
+
+/* Aplicação das variáveis aos elementos da interface */
+body {
+    background-color: var(--body-bg);
+    color: var(--text-primary);
+}
+
+.sidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--text-on-sidebar);
+}
+
+.sidebar a, .sidebar button {
+    color: var(--text-on-sidebar);
+}
+
+.sidebar-active-link {
+    background-color: var(--sidebar-link-active-bg) !important;
+}
+
+.sidebar-hover-effect:hover {
+    background-color: var(--sidebar-link-hover-bg) !important;
+}
+
+.header {
+    background-color: var(--header-bg);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.main-content h1, .main-content h2, .main-content h3 {
+    color: var(--text-primary);
+}
+
+.main-content .text-gray-600 {
+     color: var(--text-secondary);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.custom-table thead {
+    background-color: var(--table-header-bg);
+}
+
+.custom-table tbody tr {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.custom-table tbody tr:hover {
+    background-color: var(--table-row-hover-bg);
+}
+
+.custom-modal-bg {
+    background-color: var(--modal-bg);
+}
+
+.custom-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+.custom-input:focus {
+    --tw-ring-color: var(--sidebar-link-active-bg)
+}
+
+.custom-select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+.btn-secondary {
+    background-color: var(--button-secondary-bg);
+    color: var(--button-secondary-text);
+}
+.btn-secondary:hover {
+    background-color: var(--button-secondary-hover-bg);
+}
+
+.theme-switcher-container .theme-btn.active {
+    border-color: var(--sidebar-link-active-bg);
+    transform: scale(1.1);
+}

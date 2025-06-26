@@ -21,7 +21,8 @@
     position: relative;
     width: 1654px;
     height: 1178px;
-    background-image: url('/scripts/pedido.png');
+    /* CORREÇÃO: Voltando a usar background-image e o caminho original */
+    background-image: url('/scripts/pedido.png'); 
     background-size: cover;
     background-repeat: no-repeat;
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
@@ -36,6 +37,7 @@
     word-wrap: break-word;
     white-space: pre-wrap;
   }
+  /* Estilos para os campos existentes */
   #data { top: 90px; left: 112px; width: 250px; }
   #dataEntrega { top: 90px; left: 377px; width: 250px; }
   #cliente { top: 90px; left: 685px; width: 900px; }
@@ -53,50 +55,35 @@
 
   #prod_cor { top: 530px; left: 110px; width: 600px; }
   #prod_aplicacao { top: 530px; left: 723px; width: 850px; }
-  #prod_obs { top: 612px; left: 107px; width: 1450px; }
+  #prod_obs { top: 612px; left: 107px; width: 1050px; font-size: 28px; }
 
   #acab_qtde_etq { top: 790px; left: 165px; width: 300px; }
   #acab_metragem { top: 790px; left: 570px; width: 250px; }
   #acab_tubete { top: 790px; left: 840px; width: 300px; }
   #acab_embalagem { top: 790px; left: 1180px; width: 400px; }
 
-  
+  /* Estilos para os novos campos */
   #obs_gerais { 
-
       top: 900px; 
-
       left: 107px; 
-
       width: 1450px; 
-
       font-size: 28px; 
-
       color: #000000;
-
   }
-
   #imagem_arte {
-
       position: absolute;
-
       top: 670px;
-
       left: 1200px;
-
       width: 350px;
-
       height: 200px;
-
       object-fit: contain;
-
       border: 2px solid #ccc;
-
       background-color: #fff;
-
   }
 
   @media print {
     @page {
+      /* CORREÇÃO: Revertendo para portrait, como no original */
       size: A4 portrait;
       margin: 0;
     }
@@ -112,19 +99,19 @@
       width: 100%;
       height: auto;
       background-size: contain;
+      /* CORREÇÃO: Propriedades essenciais para imprimir o fundo */
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       page-break-inside: avoid;
-      margin-bottom: 1cm;
-    }
-    .layout:last-child {
-        margin-bottom: 0;
     }
     .campo {
-        font-size: 22px;
+        font-size: 11px; /* Ajuste para caber na página A4 portrait */
     }
     #prod_obs {
-        font-size: 18px;
+        font-size: 10px;
+    }
+     #obs_gerais {
+        font-size: 10px;
     }
   }
 </style>
@@ -149,14 +136,11 @@
         return;
       }
       const printContainer = document.getElementById('print-container');
-      if (!printContainer) {
-        console.error("Container de impressão '#print-container' não encontrado.");
-        return;
-      }
       printContainer.innerHTML = '';
+      
+      // CORREÇÃO: Removida a tag <img> do fundo do template. O fundo agora é controlado 100% pelo CSS.
       const layoutTemplate = `
         <div class="layout">
-          <img src="/scripts/pedido.png" class="background-image" alt="Layout do Pedido">
           <div id="data" class="campo"></div>
           <div id="dataEntrega" class="campo"></div>
           <div id="cliente" class="campo"></div>
@@ -176,22 +160,36 @@
           <div id="acab_metragem" class="campo"></div>
           <div id="acab_tubete" class="campo"></div>
           <div id="acab_embalagem" class="campo"></div>
+          <div id="obs_gerais" class="campo"></div>
+          <img id="imagem_arte" src="https://placehold.co/1x1/ffffff/ffffff?text=." alt="Arte do Produto" style="display: none;">
         </div>`;
+
       printQueue.forEach(itemData => {
         const tempWrapper = document.createElement('div');
         tempWrapper.innerHTML = layoutTemplate.trim();
         const layoutElement = tempWrapper.firstChild;
+        
         for (const fieldId in itemData) {
           const fieldElement = layoutElement.querySelector('#' + fieldId);
           if (fieldElement) {
-            fieldElement.textContent = itemData[fieldId];
+            // Lógica para preencher imagem da arte
+            if (fieldId === 'imagem_arte') {
+                if (itemData[fieldId]) {
+                    fieldElement.src = itemData[fieldId];
+                    fieldElement.style.display = 'block'; // Mostra o elemento se tiver uma URL
+                } else {
+                    fieldElement.style.display = 'none'; // Esconde se não houver imagem
+                }
+            } else { // Lógica para preencher campos de texto
+                fieldElement.textContent = itemData[fieldId];
+            }
           }
         }
 
         printContainer.appendChild(layoutElement);
       });
 
-setTimeout(() => {
+    setTimeout(() => {
         window.print();
       }, 500); 
 

@@ -1,48 +1,56 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    // Verificação inicial do cliente Supabase
     if (!window.supabase) {
         console.error("Supabase client not found.");
-        document.getElementById('kpi-faturamento').textContent = 'Erro';
-        document.getElementById('kpi-pedidos-aberto').textContent = 'Erro';
-        document.getElementById('kpi-pedidos-concluidos').textContent = 'Erro';
-        document.getElementById('kpi-estoque-baixo').textContent = 'Erro';
+        // Exibe erro em todos os KPIs se o cliente Supabase não for encontrado
+        document.querySelectorAll('[id^="kpi-"]').forEach(el => el.textContent = 'Erro');
         return;
     }
+    const supabase = window.supabase;
+
+    // Seletores dos elementos do DOM (ATUALIZADO)
     const kpiFaturamento = document.getElementById('kpi-faturamento');
     const kpiPedidosAberto = document.getElementById('kpi-pedidos-aberto');
     const kpiPedidosConcluidos = document.getElementById('kpi-pedidos-concluidos');
+    const kpiAguardandoFaturamento = document.getElementById('kpi-aguardando-faturamento');
+    const kpiPagamentoAtrasado = document.getElementById('kpi-pagamento-atrasado'); // Adicionado seletor
+    const kpiArtesPendentes = document.getElementById('kpi-artes-pendentes');
+    const kpiClichesPendentes = document.getElementById('kpi-cliches-pendentes');
     const kpiEstoqueBaixo = document.getElementById('kpi-estoque-baixo');
     const welcomeMessage = document.getElementById('welcomeMessage');
 
+    /**
+     * Carrega todos os Indicadores Chave de Performance (KPIs).
+     */
     async function loadKPIs() {
         const today = new Date();
         const currentMonth = (today.getMonth() + 1).toString().padStart(2, '0');
         const currentYear = today.getFullYear().toString();
         const firstDayOfMonth = `${currentYear}-${currentMonth}-01`;
-        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+        const todayISO = today.toISOString().split('T')[0]; // Data de hoje para comparação
 
+        // --- Faturamento do Mês (Pedidos Concluídos e Pagos) ---
         try {
-            const { data, error } = await window.supabase
+            const { data, error } = await supabase
                 .from('pedidos')
                 .select('valor_total')
                 .gte('data_pedido', firstDayOfMonth)
-                .lte('data_pedido', lastDayOfMonth)
-                .eq('status', 'concluido');
-
+                .eq('status', 'concluido')
+                .eq('status_faturamento', 'pago');
             if (error) throw error;
-
             const totalFaturamento = data.reduce((sum, order) => sum + parseFloat(order.valor_total || 0), 0);
-            kpiFaturamento.textContent = `R$ ${totalFaturamento.toFixed(2).replace('.', ',')}`;
+            kpiFaturamento.textContent = totalFaturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         } catch (error) {
             console.error('Error fetching Faturamento do Mês:', error);
             kpiFaturamento.textContent = 'Erro';
         }
 
+        // --- Pedidos em Aberto ---
         try {
-            const { count, error } = await window.supabase
+            const { count, error } = await supabase
                 .from('pedidos')
                 .select('id', { count: 'exact' })
                 .eq('status', 'em_aberto');
-
             if (error) throw error;
             kpiPedidosAberto.textContent = count;
         } catch (error) {
@@ -50,104 +58,147 @@ document.addEventListener('DOMContentLoaded', async () => {
             kpiPedidosAberto.textContent = 'Erro';
         }
 
+        // --- Pedidos Concluídos no Mês ---
         try {
-            const { count, error } = await window.supabase
+            const { count, error } = await supabase
                 .from('pedidos')
                 .select('id', { count: 'exact' })
                 .gte('data_pedido', firstDayOfMonth)
-                .lte('data_pedido', lastDayOfMonth)
                 .eq('status', 'concluido');
-
             if (error) throw error;
             kpiPedidosConcluidos.textContent = count;
         } catch (error) {
             console.error('Error fetching Pedidos Concluídos no Mês:', error);
             kpiPedidosConcluidos.textContent = 'Erro';
         }
-
+        
+        // --- NOVO: Lógica para Pagamentos Atrasados ---
+        // Conta pedidos não pagos, não cancelados e com data de vencimento anterior a hoje.
         try {
-            const { data: stockItems, error } = await window.supabase
+            const { count, error } = await supabase
+                .from('pedidos')
+                .select('id', { count: 'exact' })
+                .eq('status_faturamento', 'nao_pago')
+                .neq('status', 'cancelado')
+                .lt('data_vencimento_faturamento', todayISO);
+            if (error) throw error;
+            kpiPagamentoAtrasado.textContent = count;
+        } catch (error) {
+            console.error('Error fetching Pagamentos Atrasados:', error);
+            kpiPagamentoAtrasado.textContent = 'Erro';
+        }
+
+        // --- ATUALIZADO: Lógica para Aguardando Faturamento ---
+        // Conta pedidos não pagos, não cancelados e que NÃO estão atrasados (vencimento hoje, no futuro ou sem vencimento definido).
+        try {
+            const { count, error } = await supabase
+                .from('pedidos')
+                .select('id', { count: 'exact' })
+                .eq('status_faturamento', 'nao_pago')
+                .neq('status', 'cancelado')
+                .or(`data_vencimento_faturamento.gte.${todayISO},data_vencimento_faturamento.is.null`);
+            if (error) throw error;
+            kpiAguardandoFaturamento.textContent = count;
+        } catch (error) {
+            console.error('Error fetching Pedidos Aguardando Faturamento:', error);
+            kpiAguardandoFaturamento.textContent = 'Erro';
+        }
+
+        // --- Artes Pendentes ---
+        try {
+            const { count, error } = await supabase
+                .from('produtos_cliente')
+                .select('id', { count: 'exact' })
+                .in('status_arte', ['em_aberto', 'em_producao']);
+            if (error) throw error;
+            kpiArtesPendentes.textContent = count;
+        } catch (error) {
+            console.error('Error fetching Artes Pendentes:', error);
+            kpiArtesPendentes.textContent = 'Erro';
+        }
+        
+        // --- Clichês Pendentes ---
+        try {
+            const { count, error } = await supabase
+                .from('produtos_cliente')
+                .select('id', { count: 'exact' })
+                .in('status_cliche', ['em_aberto', 'em_producao']);
+            if (error) throw error;
+            kpiClichesPendentes.textContent = count;
+        } catch (error) {
+            console.error('Error fetching Clichês Pendentes:', error);
+            kpiClichesPendentes.textContent = 'Erro';
+        }
+
+        // --- Itens com Estoque Baixo ---
+        try {
+            const { data: stockItems, error } = await supabase
                 .from('itens_estoque')
                 .select('quantidade_atual, nivel_minimo');
-
             if (error) throw error;
-
-            const lowStockCount = stockItems.filter(item => {
-                const current = parseFloat(item.quantidade_atual);
-                const min = parseFloat(item.nivel_minimo);
-                return current < min;
-            }).length;
-
+            const lowStockCount = stockItems.filter(item => parseFloat(item.quantidade_atual) < parseFloat(item.nivel_minimo)).length;
             kpiEstoqueBaixo.textContent = lowStockCount;
-        } catch (error) {
+        } catch (error)
+        {
             console.error('Error fetching Itens em Estoque Baixo:', error);
             kpiEstoqueBaixo.textContent = 'Erro';
         }
     }
 
+    /**
+     * Carrega a lista de pedidos recentes para a tabela do dashboard.
+     */
     async function loadRecentOrders() {
         const tabelaPedidosRecentes = document.getElementById('tabela-pedidos-recentes');
         if (!tabelaPedidosRecentes) return;
-
-        tabelaPedidosRecentes.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Carregando últimos pedidos...</td></tr>';
+        tabelaPedidosRecentes.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Carregando...</td></tr>';
 
         try {
-            const { data: orders, error } = await window.supabase
+            const { data: orders, error } = await supabase
                 .from('pedidos')
-                .select(`
-                    id,
-                    numero_pedido,
-                    data_pedido,
-                    valor_total,
-                    status,
-                    clientes (nome)
-                `)
+                .select(`id, numero_pedido, data_pedido, valor_total, status, status_faturamento, clientes (nome)`)
                 .order('data_pedido', { ascending: false })
                 .limit(5);
-
             if (error) throw error;
 
             if (orders.length === 0) {
-                tabelaPedidosRecentes.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Nenhum pedido recente encontrado.</td></tr>';
+                tabelaPedidosRecentes.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum pedido recente.</td></tr>';
                 return;
             }
 
             tabelaPedidosRecentes.innerHTML = '';
             orders.forEach(order => {
-                const clientName = order.clientes ? order.clientes.nome : 'N/A';
-                const orderDate = new Date(order.data_pedido).toLocaleDateString('pt-BR');
-                const totalValue = `R$ ${parseFloat(order.valor_total || 0).toFixed(2).replace('.', ',')}`;
-                const statusText = formatStatusText(order.status);
-                const statusClass = `px-2 py-1 text-xs font-semibold rounded-full badge-${order.status}`;
+                const statusFaturamentoText = formatStatusText(order.status_faturamento);
+                const statusFaturamentoClass = `px-2 py-1 text-xs font-semibold rounded-full badge-${order.status_faturamento || 'nao_pago'}`;
 
                 tabelaPedidosRecentes.innerHTML += `
                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                         <td class="px-4 py-2 text-sm text-gray-900">${String(order.numero_pedido).padStart(5, '0')}</td>
-                        <td class="px-4 py-2 text-sm text-gray-900">${clientName}</td>
-                        <td class="px-4 py-2 text-sm text-gray-900">${totalValue}</td>
-                        <td class="px-4 py-2 text-sm text-gray-900">
-                            <span class="${statusClass}">${statusText}</span>
-                        </td>
-                    </tr>
-                `;
+                        <td class="px-4 py-2 text-sm text-gray-900">${order.clientes?.nome || 'N/A'}</td>
+                        <td class="px-4 py-2 text-sm text-gray-900">${(order.valor_total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="px-4 py-2 text-sm"><span class="px-2 py-1 text-xs font-semibold rounded-full badge-${order.status}">${formatStatusText(order.status)}</span></td>
+                        <td class="px-4 py-2 text-sm"><span class="${statusFaturamentoClass}">${statusFaturamentoText}</span></td>
+                    </tr>`;
             });
-
         } catch (error) {
             console.error('Error loading recent orders:', error);
-            tabelaPedidosRecentes.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Erro ao carregar pedidos.</td></tr>`;
+            tabelaPedidosRecentes.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Erro ao carregar.</td></tr>`;
         }
     }
 
+    /**
+     * Formata o texto de status para exibição.
+     * @param {string} status - O status do pedido ou faturamento.
+     * @returns {string} - O status formatado.
+     */
     function formatStatusText(status) {
-        switch (status) {
-            case 'em_aberto': return 'Em Aberto';
-            case 'em_producao': return 'Em Produção';
-            case 'concluido': return 'Concluído';
-            case 'cancelado': return 'Cancelado';
-            default: return status;
-        }
+        if (!status) return 'N/A';
+        return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
+    /**
+     * Carrega e renderiza o gráfico de faturamento.
+     */
     async function loadRevenueChart() {
         const ctx = document.getElementById('graficoFaturamento');
         if (!ctx) return;
@@ -159,21 +210,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                const monthName = d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
-                months.push(monthName);
+                months.push(d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' }));
 
-                const firstDayOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
-                const lastDayOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+                const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+                const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
 
-                const { data: monthlyOrders, error } = await window.supabase
+                const { data, error } = await supabase
                     .from('pedidos')
                     .select('valor_total')
-                    .gte('data_pedido', firstDayOfMonth)
-                    .lte('data_pedido', lastDayOfMonth)
-                    .eq('status', 'concluido');
-
+                    .gte('data_pedido', firstDay)
+                    .lte('data_pedido', lastDay)
+                    .eq('status', 'concluido')
+                    .eq('status_faturamento', 'pago');
                 if (error) throw error;
-                const totalMonthRevenue = monthlyOrders.reduce((sum, order) => sum + parseFloat(order.valor_total || 0), 0);
+                
+                const totalMonthRevenue = data.reduce((sum, order) => sum + (order.valor_total || 0), 0);
                 revenueData.push(totalMonthRevenue);
             }
 
@@ -191,32 +242,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Valor (R$)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Mês'
-                            }
-                        }
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
-                                    return `R$ ${context.parsed.y.toFixed(2).replace('.', ',')}`;
-                                }
+                                label: (context) => `R$ ${context.parsed.y.toFixed(2).replace('.', ',')}`
                             }
                         }
                     }
@@ -225,17 +257,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error loading revenue chart:', error);
-            const chartContainer = ctx.parentElement;
-            chartContainer.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar o gráfico de faturamento.</p>';
+            ctx.parentElement.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar o gráfico.</p>';
         }
     }
-    const { data: { user } } = await window.supabase.auth.getUser();
-    if (user) {
-        welcomeMessage.textContent = `Bem-vindo de volta, ${user.email}!`;
-    } else {
-        welcomeMessage.textContent = `Bem-vindo de volta!`;
-    }
 
+    // --- Inicialização ---
+    const { data: { user } } = await supabase.auth.getUser();
+    welcomeMessage.textContent = user ? `Bem-vindo de volta, ${user.email.split('@')[0]}!` : `Bem-vindo de volta!`;
+    
+    // Carrega todos os dados do dashboard
     loadKPIs();
     loadRecentOrders();
     loadRevenueChart();
