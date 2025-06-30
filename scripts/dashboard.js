@@ -11,13 +11,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Seletores dos elementos do DOM (ATUALIZADO)
     const kpiFaturamento = document.getElementById('kpi-faturamento');
     const kpiPedidosAberto = document.getElementById('kpi-pedidos-aberto');
-    const kpiPedidosConcluidos = document.getElementById('kpi-pedidos-concluidos');
+    const kpiPedidosAtrasados = document.getElementById('kpi-pedidos-atrasados');
     const kpiAguardandoFaturamento = document.getElementById('kpi-aguardando-faturamento');
-    const kpiPagamentoAtrasado = document.getElementById('kpi-pagamento-atrasado'); // Adicionado seletor
+    const kpiPagamentoAtrasado = document.getElementById('kpi-pagamento-atrasado');
     const kpiArtesPendentes = document.getElementById('kpi-artes-pendentes');
     const kpiClichesPendentes = document.getElementById('kpi-cliches-pendentes');
     const kpiEstoqueBaixo = document.getElementById('kpi-estoque-baixo');
     const welcomeMessage = document.getElementById('welcomeMessage');
+
+    /**
+     * Verifica e atualiza o status de pedidos com entrega atrasada.
+     * Esta função é executada antes de carregar os KPIs para garantir dados precisos.
+     */
+    async function checkAndMarkOverdueOrders() {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
+
+        try {
+            // Busca pedidos que não estão concluídos, cancelados ou já marcados como atrasados
+            const { data: ordersToCheck, error } = await supabase
+                .from('pedidos')
+                .select('id, data_entrega, status')
+                .not('status', 'in', '("concluido", "cancelado", "entrega_atrasada")');
+
+            if (error) throw error;
+
+            // Filtra os pedidos cuja data de entrega já passou
+            const idsToUpdate = ordersToCheck
+                .filter(order => order.data_entrega && new Date(order.data_entrega + 'T00:00:00') < hoje)
+                .map(order => order.id);
+
+            // Se houver pedidos para atualizar, executa o update
+            if (idsToUpdate.length > 0) {
+                console.log(`Atualizando ${idsToUpdate.length} pedido(s) para 'entrega_atrasada'.`);
+                const { error: updateError } = await supabase
+                    .from('pedidos')
+                    .update({ status: 'entrega_atrasada' })
+                    .in('id', idsToUpdate);
+                if (updateError) throw updateError;
+            }
+        } catch (err) {
+            console.error('Erro ao verificar e marcar pedidos atrasados no dashboard:', err);
+        }
+    }
 
     /**
      * Carrega todos os Indicadores Chave de Performance (KPIs).
@@ -58,22 +94,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             kpiPedidosAberto.textContent = 'Erro';
         }
 
-        // --- Pedidos Concluídos no Mês ---
+        // --- Pedidos Atrasados ---
         try {
             const { count, error } = await supabase
                 .from('pedidos')
                 .select('id', { count: 'exact' })
-                .gte('data_pedido', firstDayOfMonth)
-                .eq('status', 'concluido');
+                .eq('status', 'entrega_atrasada');
             if (error) throw error;
-            kpiPedidosConcluidos.textContent = count;
+            kpiPedidosAtrasados.textContent = count;
         } catch (error) {
-            console.error('Error fetching Pedidos Concluídos no Mês:', error);
-            kpiPedidosConcluidos.textContent = 'Erro';
+            console.error('Error fetching Pedidos Atrasados:', error);
+            kpiPedidosAtrasados.textContent = 'Erro';
         }
         
-        // --- NOVO: Lógica para Pagamentos Atrasados ---
-        // Conta pedidos não pagos, não cancelados e com data de vencimento anterior a hoje.
+        // --- Pagamentos Atrasados ---
         try {
             const { count, error } = await supabase
                 .from('pedidos')
@@ -88,8 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             kpiPagamentoAtrasado.textContent = 'Erro';
         }
 
-        // --- ATUALIZADO: Lógica para Aguardando Faturamento ---
-        // Conta pedidos não pagos, não cancelados e que NÃO estão atrasados (vencimento hoje, no futuro ou sem vencimento definido).
+        // --- Aguardando Faturamento ---
         try {
             const { count, error } = await supabase
                 .from('pedidos')
@@ -156,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const { data: orders, error } = await supabase
                 .from('pedidos')
-                .select(`id, numero_pedido, data_pedido, valor_total, status, status_faturamento, clientes (nome)`)
+                .select(`id, numero_pedido, data_pedido, valor_total, status, status_faturamento, tipo_pagamento, data_vencimento_faturamento, clientes (nome)`)
                 .order('data_pedido', { ascending: false })
                 .limit(5);
             if (error) throw error;
@@ -168,8 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             tabelaPedidosRecentes.innerHTML = '';
             orders.forEach(order => {
-                const statusFaturamentoText = formatStatusText(order.status_faturamento);
-                const statusFaturamentoClass = `px-2 py-1 text-xs font-semibold rounded-full badge-${order.status_faturamento || 'nao_pago'}`;
+                const { statusFaturamentoTexto, statusFaturamentoClasse } = getStatusFaturamentoDinamico(order);
 
                 tabelaPedidosRecentes.innerHTML += `
                     <tr class="border-b border-gray-200 hover:bg-gray-50">
@@ -177,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td class="px-4 py-2 text-sm text-gray-900">${order.clientes?.nome || 'N/A'}</td>
                         <td class="px-4 py-2 text-sm text-gray-900">${(order.valor_total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td class="px-4 py-2 text-sm"><span class="px-2 py-1 text-xs font-semibold rounded-full badge-${order.status}">${formatStatusText(order.status)}</span></td>
-                        <td class="px-4 py-2 text-sm"><span class="${statusFaturamentoClass}">${statusFaturamentoText}</span></td>
+                        <td class="px-4 py-2 text-sm"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusFaturamentoClasse}">${statusFaturamentoTexto}</span></td>
                     </tr>`;
             });
         } catch (error) {
@@ -185,6 +217,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             tabelaPedidosRecentes.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Erro ao carregar.</td></tr>`;
         }
     }
+    
+    /**
+     * Formata uma string de data para o formato dd/mm/aaaa.
+     * @param {string} dateString - A data no formato YYYY-MM-DD.
+     * @returns {string} - A data formatada.
+     */
+    function formatDate(dateString) { 
+        if (!dateString) return ''; 
+        return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR'); 
+    }
+    
+    /**
+     * Retorna o texto e a classe CSS para o status de faturamento dinâmico.
+     * @param {object} order - O objeto do pedido.
+     * @returns {{statusFaturamentoTexto: string, statusFaturamentoClasse: string}}
+     */
+    function getStatusFaturamentoDinamico(order) {
+        if (order.status_faturamento === 'pago') {
+             return { statusFaturamentoTexto: 'Pago', statusFaturamentoClasse: 'badge-pago' };
+        }
+        if (order.tipo_pagamento === 'a_prazo' && order.data_vencimento_faturamento) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0); 
+            const dataVencimento = new Date(order.data_vencimento_faturamento + 'T00:00:00');
+            if (dataVencimento < hoje) {
+                return { statusFaturamentoTexto: 'Atrasado', statusFaturamentoClasse: 'badge-atrasado' };
+            }
+            return { statusFaturamentoTexto: `Vence em ${formatDate(order.data_vencimento_faturamento)}`, statusFaturamentoClasse: 'badge-a_vencer' };
+        }
+        return { statusFaturamentoTexto: 'Não Pago', statusFaturamentoClasse: 'badge-nao_pago' };
+    }
+
 
     /**
      * Formata o texto de status para exibição.
@@ -262,11 +326,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Inicialização ---
-    const { data: { user } } = await supabase.auth.getUser();
-    welcomeMessage.textContent = user ? `Bem-vindo de volta, ${user.email.split('@')[0]}!` : `Bem-vindo de volta!`;
-    
-    // Carrega todos os dados do dashboard
-    loadKPIs();
-    loadRecentOrders();
-    loadRevenueChart();
+    async function initializeDashboard() {
+        const { data: { user } } = await supabase.auth.getUser();
+        welcomeMessage.textContent = user ? `Bem-vindo de volta, ${user.email.split('@')[0]}!` : `Bem-vindo de volta!`;
+        
+        // Primeiro, verifica e marca pedidos atrasados
+        await checkAndMarkOverdueOrders();
+
+        // Depois, carrega todos os dados do dashboard
+        loadKPIs();
+        loadRecentOrders();
+        loadRevenueChart();
+    }
+
+    initializeDashboard();
 });

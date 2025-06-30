@@ -16,10 +16,12 @@
     .badge-em_producao { background-color: #3b82f6; color: #ffffff; }
     .badge-concluido { background-color: #22c55e; color: #ffffff; }
     .badge-cancelado { background-color: #dc2626; color: #ffffff; }
+    .badge-entrega_atrasada { background-color: #ef4444; color: #ffffff; }
 
     /* ATUALIZADO: Estilos para badges de status de faturamento */
     .badge-nao_pago { background-color: #ef4444; color: #ffffff; }
     .badge-pago { background-color: #16a34a; color: #ffffff; }
+    .badge-atrasado { background-color: #ef4444; color: #ffffff; }
 </style>
 
 </head>
@@ -66,7 +68,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-purple-100 text-purple-900 mr-4"><i class="fas fa-money-bill-wave text-2xl"></i></div><div><p class="text-gray-600">Faturamento do Mês</p><span id="kpi-faturamento" class="text-2xl font-bold">R$ 0,00</span></div></div></a>
                     <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-blue-100 text-blue-900 mr-4"><i class="fas fa-hourglass-half text-2xl"></i></div><div><p class="text-gray-600">Pedidos em Aberto</p><span id="kpi-pedidos-aberto" class="text-2xl font-bold">0</span></div></div></a>
-                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-green-100 text-green-900 mr-4"><i class="fas fa-check-double text-2xl"></i></div><div><p class="text-gray-600">Concluídos no Mês</p><span id="kpi-pedidos-concluidos" class="text-2xl font-bold">0</span></div></div></a>
+                    <a href="/pedidos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-red-100 text-red-900 mr-4"><i class="fas fa-clock-rotate-left text-2xl"></i></div><div><p class="text-gray-600">Pedidos Atrasados</p><span id="kpi-pedidos-atrasados" class="text-2xl font-bold">0</span></div></div></a>
                     <a href="/estoque.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-red-100 text-red-900 mr-4"><i class="fas fa-box-open text-2xl"></i></div><div><p class="text-gray-600">Itens em Estoque Baixo</p><span id="kpi-estoque-baixo" class="text-2xl font-bold">0</span></div></div></a>
                     <a href="/produtos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-orange-100 text-orange-900 mr-4"><i class="fas fa-palette text-2xl"></i></div><div><p class="text-gray-600">Artes Pendentes</p><span id="kpi-artes-pendentes" class="text-2xl font-bold">0</span></div></div></a>
                     <a href="/produtos.html"><div class="card rounded-lg shadow-md p-6 flex items-center"><div class="p-4 rounded-full bg-indigo-100 text-indigo-900 mr-4"><i class="fas fa-stamp text-2xl"></i></div><div><p class="text-gray-600">Clichês Pendentes</p><span id="kpi-cliches-pendentes" class="text-2xl font-bold">0</span></div></div></a>
