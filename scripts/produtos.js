@@ -251,7 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
             prod_serrilha: formData.get('prod_serrilha'), prod_verniz: formData.get('prod_verniz'), prod_cor: formData.get('prod_cor'),
             prod_aplicacao: formData.get('prod_aplicacao'), prod_obs: formData.get('prod_obs'),
             acab_qtde_etq: formData.get('acab_qtde_etq'), acab_metragem: formData.get('acab_metragem'), acab_tubete: formData.get('acab_tubete'),
-            acab_embalagem: formData.get('acab_embalagem')
+            acab_embalagem: formData.get('acab_embalagem'),
+            info_impressao: formData.get('info_impressao')
         };
         
         const clientIdValue = formData.get('cliente_id');

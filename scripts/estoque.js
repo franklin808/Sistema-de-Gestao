@@ -59,19 +59,19 @@ function setupEventListeners() {
 async function loadStockItems() {
     const stockTableBody = document.getElementById('stock-table-body');
     if (!stockTableBody) return;
-    stockTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando estoque...</td></tr>`;
+    stockTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando estoque...</td></tr>`;
 
     try {
         const { data: items, error } = await window.supabase
             .from('itens_estoque')
-            .select(`id, produto_id, dimensoes_ou_variacao, quantidade_atual, nivel_minimo, unidade_medida, categoria, valor, produtos (nome)`)
+            .select(`id, produto_id, dimensoes_ou_variacao, quantidade_atual, nivel_minimo, unidade_medida, categoria, valor, produtos (nome, descricao)`)
             .order('id', { ascending: true });
 
         if (error) throw error;
         allStockItems = items;
 
         if (items.length === 0) {
-            stockTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-gray-500">Nenhum item encontrado no estoque. <br><small>Use o botão "Adicionar Variação" para começar.</small></td></tr>`;
+            stockTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Nenhum item encontrado no estoque. <br><small>Use o botão "Adicionar Variação" para começar.</small></td></tr>`;
             return;
         }
 
@@ -82,14 +82,16 @@ async function loadStockItems() {
             const statusText = isLowStock ? 'NÍVEL BAIXO' : 'OK';
             const itemName = item.produtos ? `${item.produtos.nome} (${item.dimensoes_ou_variacao})` : `Produto não encontrado (${item.dimensoes_ou_variacao})`;
             const itemValue = item.valor ? `R$ ${parseFloat(item.valor).toFixed(2)}` : 'N/A';
+            const itemDescription = item.produtos?.descricao || 'N/A';
 
             stockTableBody.innerHTML += `
                 <tr class="hover:bg-gray-50" data-item-id="${item.id}">
                     <td class="px-6 py-4"><div class="text-sm font-medium text-gray-900">${itemName}</div></td>
                     <td class="px-6 py-4 text-sm text-gray-500">${item.categoria || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${itemDescription}</td>
                     <td class="px-6 py-4 text-sm font-semibold ${isLowStock ? 'text-red-600' : 'text-gray-900'}">${item.quantidade_atual} ${item.unidade_medida || ''}</td>
                     <td class="px-6 py-4 text-sm text-gray-500">${item.nivel_minimo} ${item.unidade_medida || ''}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${itemValue}</td> <!-- Nova coluna para o Valor -->
+                    <td class="px-6 py-4 text-sm text-gray-500">${itemValue}</td>
                     <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${statusText}</span></td>
                     <td class="px-6 py-4 text-right text-sm font-medium">
                         <button class="text-blue-600 hover:text-blue-800 mr-3 edit-item-btn" title="Editar" data-id="${item.id}"><i class="fas fa-edit"></i></button>
@@ -99,7 +101,7 @@ async function loadStockItems() {
         });
     } catch (error) {
         console.error('Erro ao carregar itens do estoque:', error);
-        stockTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-red-500"><b>Erro ao carregar dados.</b><br><span class="text-sm text-gray-600">Verifique as permissões (RLS) e o console para detalhes.</span></td></tr>`;
+        stockTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-red-500"><b>Erro ao carregar dados.</b><br><span class="text-sm text-gray-600">Verifique as permissões (RLS) e o console para detalhes.</span></td></tr>`;
     }
 }
 

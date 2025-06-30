@@ -41,6 +41,8 @@
   #cliente { top: 90px; left: 685px; width: 900px; }
   #pedido { top: 170px; left: 115px; width: 300px; }
 
+  #quantidade_rolos { top: 162px; left: 489px; width: 300px; }
+
   #mp_tipo { top: 285px; left: 115px; width: 350px; }
   #mp_descricao { top: 285px; left: 489px; width: 700px; }
   #mp_corte { top: 285px; left: 1210px; width: 350px; }
@@ -60,39 +62,48 @@
   #acab_tubete { top: 790px; left: 840px; width: 300px; }
   #acab_embalagem { top: 790px; left: 1180px; width: 400px; }
 
-  
-  #obs_gerais { 
 
-      top: 900px; 
-
-      left: 107px; 
-
-      width: 1450px; 
-
-      font-size: 28px; 
-
-      color: #000000;
-
+    #info_impressao {
+    top: 900px; /* Posição vertical */
+    left: 107px; /* Posição horizontal */
+    width: 1450px; /* Largura */
+    font-size: 28px; /* Tamanho da fonte */
+    line-height: 1.2;
   }
 
+  /* #obs_gerais {
+    top: 900px;
+    left: 107px;
+    width: 550px;
+    height: 200px;
+    font-size: 28px;
+    color: #000000;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #555;
+    line-height: 1.2;
+    overflow: hidden;
+  } */
+
   #imagem_arte {
+    position: absolute;
+    top: 916px;
+    left: 820px;
+    width: 680px;
+    height: 200px;
+    /* border: 2px solid #555; */
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    box-sizing: border-box;
+  }
 
-      position: absolute;
-
-      top: 670px;
-
-      left: 1200px;
-
-      width: 350px;
-
-      height: 200px;
-
-      object-fit: contain;
-
-      border: 2px solid #ccc;
-
-      background-color: #fff;
-
+  #imagem_arte img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
   }
 
   @media print {
@@ -115,9 +126,13 @@
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       page-break-inside: avoid;
+
       margin-bottom: 1cm;
+
     }
+
     .layout:last-child {
+
         margin-bottom: 0;
     }
     .campo {
@@ -126,6 +141,9 @@
     #prod_obs {
         font-size: 18px;
     }
+    /* #obs_gerais {
+        font-size: 20px;
+    } */
   }
 </style>
 </head>
@@ -154,13 +172,15 @@
         return;
       }
       printContainer.innerHTML = '';
+
       const layoutTemplate = `
-        <div class="layout">
+        <div class="layout">          
           <img src="/scripts/pedido.png" class="background-image" alt="Layout do Pedido">
           <div id="data" class="campo"></div>
           <div id="dataEntrega" class="campo"></div>
           <div id="cliente" class="campo"></div>
           <div id="pedido" class="campo"></div>
+          <div id="quantidade_rolos" class="campo"></div>
           <div id="mp_tipo" class="campo"></div>
           <div id="mp_descricao" class="campo"></div>
           <div id="mp_corte" class="campo"></div>
@@ -176,22 +196,45 @@
           <div id="acab_metragem" class="campo"></div>
           <div id="acab_tubete" class="campo"></div>
           <div id="acab_embalagem" class="campo"></div>
+         <!-- <div id="obs_gerais" class="campo"></div> --!>
+          <div id="info_impressao" class="campo"></div>
+          <div id="imagem_arte"></div>
         </div>`;
+
       printQueue.forEach(itemData => {
         const tempWrapper = document.createElement('div');
         tempWrapper.innerHTML = layoutTemplate.trim();
         const layoutElement = tempWrapper.firstChild;
+
+        // Itera sobre os dados e preenche os campos de texto e a imagem
         for (const fieldId in itemData) {
-          const fieldElement = layoutElement.querySelector('#' + fieldId);
-          if (fieldElement) {
-            fieldElement.textContent = itemData[fieldId];
+          const value = itemData[fieldId];
+          
+          if (fieldId === 'imagem_arte') {
+            const imageContainer = layoutElement.querySelector('#imagem_arte');
+            if (imageContainer && value) {
+              // Cria a tag de imagem e a insere no container
+              imageContainer.innerHTML = `<img src="${value}" alt="Arte do Produto">`;
+              const img = imageContainer.querySelector('img');
+              // Adiciona um fallback caso a imagem não carregue
+              img.onerror = function() {
+                  this.parentElement.innerHTML = '<p style="font-size:16px; color: #666;">Imagem não disponível</p>';
+              };
+            }
+          } else {
+            // Preenche os outros campos de texto
+            const fieldElement = layoutElement.querySelector('#' + fieldId);
+            if (fieldElement) {
+              fieldElement.textContent = value;
+            }
           }
         }
 
         printContainer.appendChild(layoutElement);
       });
 
-setTimeout(() => {
+      // Aguarda um momento para as imagens carregarem antes de chamar a impressão
+      setTimeout(() => {
         window.print();
       }, 500); 
 

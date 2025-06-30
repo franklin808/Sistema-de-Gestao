@@ -97,23 +97,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- LÓGICA DO MODAL ---
     function handleItemInteraction(e) {
-        const row = e.target.closest('.order-item');
-        if (!row) {
-             if (e.target.closest('.remove-item')) {
-                const rowToRemove = e.target.closest('.order-item');
-                const wasActive = rowToRemove.classList.contains('active');
-                rowToRemove.remove();
-                updateOrderTotal();
-                if(wasActive) {
-                    const firstRow = orderItemsContainer.querySelector('.order-item');
-                    if(firstRow) setActiveItemRow(firstRow);
-                    else clearDetailsForm();
-                }
+    const removeButton = e.target.closest('.remove-item');
+    if (removeButton) {
+        const rowToRemove = removeButton.closest('.order-item');
+        if (rowToRemove) {
+            const wasActive = rowToRemove.classList.contains('active');
+            rowToRemove.remove();
+            updateOrderTotal();
+            if (wasActive) {
+                const firstRow = orderItemsContainer.querySelector('.order-item');
+                if (firstRow) setActiveItemRow(firstRow);
+                else clearDetailsForm();
             }
-            return;
         }
+        return;
+    }
+
+    // Mesmo se o clique for dentro de um input ou select, ainda queremos ativar a linha
+    const row = e.target.closest('.order-item');
+    if (row) {
         setActiveItemRow(row);
     }
+}
 
     function setActiveItemRow(rowToActivate) {
         orderItemsContainer.querySelectorAll('.order-item.active').forEach(activeRow => {
@@ -505,7 +510,7 @@ const itemsToUpdate = [];
         order.pedido_itens.forEach(item => {
             const subtotal = (item.quantidade || 0) * (item.preco_unitario || 0);
             const printDetails = item.detalhes_impressao || {};
-            const detailLabels = { mp_tipo: "MP: Tipo", mp_descricao: "MP: Descrição", mp_corte: "MP: Corte", prod_largura: "Prod: Largura", prod_altura: "Prod: Altura", prod_carreiras: "Prod: Carreiras", prod_serrilha: "Prod: Serrilha", prod_verniz: "Prod: Verniz", prod_cor: "Prod: Cor", prod_aplicacao: "Prod: Aplicação", prod_obs: "Prod: Observações", acab_qtde_etq: "Acab: Qtd. Etq.", acab_metragem: "Acab: Metragem", acab_tubete: "Acab: Tubete", acab_embalagem: "Acab: Embalagem" };
+            const detailLabels = { mp_tipo: "MP: Tipo", mp_descricao: "MP: Descrição", mp_corte: "MP: Corte", prod_largura: "Prod: Largura", prod_altura: "Prod: Altura", prod_carreiras: "Prod: Carreiras", prod_serrilha: "Prod: Serrilha", prod_verniz: "Prod: Verniz", prod_cor: "Prod: Cor", prod_aplicacao: "Prod: Aplicação", prod_obs: "Prod: Observações", acab_qtde_etq: "Acab: Qtd. Etq.", acab_metragem: "Acab: Metragem", acab_tubete: "Acab: Tubete", acab_embalagem: "Acab: Embalagem", info_impressao: "Info. Impressão" };
             
             let itemDetailsHtml = Object.entries(detailLabels)
                 .map(([key, label]) => printDetails[key] ? `<div class="break-inside-avoid"><strong class="text-gray-600 text-xs uppercase">${label}:</strong><p class="text-sm">${printDetails[key]}</p></div>` : '')
@@ -673,6 +678,7 @@ const itemsToUpdate = [];
                     dataEntrega: formatDate(order.data_entrega) || '',
                     cliente: order.clientes?.nome || 'N/A',
                     pedido: String(order.numero_pedido).padStart(5, '0'),
+                    quantidade_rolos: `${item.quantidade || 0} rolo(s)`,
                     ...itemPrintDetails,
                     obs_gerais: orderDetails.obs_gerais || '',
                     imagem_arte: convertToEmbeddableUrl(item.produtos_cliente?.imagem_arte_url) || ''
